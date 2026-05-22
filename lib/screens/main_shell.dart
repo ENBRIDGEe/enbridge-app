@@ -1,81 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:enbridge/theme/app_theme.dart';
-import 'package:enbridge/screens/dashboard_screen.dart';
-import 'package:enbridge/screens/tasks_screen.dart';
-import 'package:enbridge/screens/focus_screen.dart';
-import 'package:enbridge/screens/habits_screen.dart';
-import 'package:enbridge/screens/analytics_screen.dart';
 
-class MainShell extends StatefulWidget {
-  const MainShell({super.key});
+import 'package:go_router/go_router.dart';
 
-  @override
-  State<MainShell> createState() => _MainShellState();
-}
+class MainShell extends StatelessWidget {
+  final Widget? child;
+  const MainShell({super.key, this.child});
 
-class _MainShellState extends State<MainShell> with TickerProviderStateMixin {
-  int _current = 0;
-  late final List<AnimationController> _fadeControllers;
-  late final List<Animation<double>> _fadeAnims;
-
-  final _screens = const [
-    DashboardScreen(),
-    TasksScreen(),
-    FocusScreen(),
-    HabitsScreen(),
-    AnalyticsScreen(),
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _fadeControllers = List.generate(
-        _screens.length,
-        (_) => AnimationController(
-            vsync: this, duration: const Duration(milliseconds: 280)));
-    _fadeAnims = _fadeControllers
-        .map((c) => CurvedAnimation(parent: c, curve: Curves.easeOut))
-        .toList();
-    _fadeControllers[0].forward();
+  int _calculateSelectedIndex(BuildContext context) {
+    final String location = GoRouterState.of(context).uri.path;
+    if (location.startsWith('/dashboard')) return 0;
+    if (location.startsWith('/tasks')) return 1;
+    if (location.startsWith('/focus')) return 2;
+    if (location.startsWith('/habits')) return 3;
+    if (location.startsWith('/profile')) return 4;
+    return 0;
   }
 
-  @override
-  void dispose() {
-    for (final c in _fadeControllers) {
-      c.dispose();
+  void _onItemTapped(int index, BuildContext context) {
+    switch (index) {
+      case 0:
+        context.go('/dashboard');
+        break;
+      case 1:
+        context.go('/tasks');
+        break;
+      case 2:
+        context.go('/focus');
+        break;
+      case 3:
+        context.go('/habits');
+        break;
+      case 4:
+        context.go('/profile');
+        break;
     }
-    super.dispose();
-  }
-
-  void _switchTab(int index) {
-    if (index == _current) return;
-    _fadeControllers[_current].reverse();
-    setState(() => _current = index);
-    _fadeControllers[index].forward();
   }
 
   @override
   Widget build(BuildContext context) {
+    final currentIndex = _calculateSelectedIndex(context);
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
-      body: Stack(
-        children: List.generate(_screens.length, (i) {
-          return FadeTransition(
-            opacity: _fadeAnims[i],
-            child: Offstage(
-              offstage: _current != i,
-              child: _screens[i],
-            ),
-          );
-        }),
-      ),
+      body: child,
       bottomNavigationBar: _BottomNav(
-        currentIndex: _current,
-        onTap: _switchTab,
+        currentIndex: currentIndex,
+        onTap: (idx) => _onItemTapped(idx, context),
       ),
     );
   }
 }
+
+
 
 class _BottomNav extends StatelessWidget {
   final int currentIndex;

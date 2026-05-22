@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:enbridge/theme/app_theme.dart';
-
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
   final VoidCallback onComplete;
@@ -11,89 +13,117 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with TickerProviderStateMixin {
-  late AnimationController _fadeCtrl;
-  late Animation<double> _fade;
+class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  final String _text = "ENBRIDGE";
+  bool _startLetters = false;
+  bool _startPulse = false;
+  bool _fadeToBlack = false;
 
   @override
   void initState() {
     super.initState();
-    _fadeCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-    _fade = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
-    _fadeCtrl.forward();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
+    _runAnimationSequence();
+  }
 
-    Future.delayed(const Duration(milliseconds: 2200), () {
-      if (mounted) widget.onComplete();
-    });
+  Future<void> _runAnimationSequence() async {
+    // Wait start
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return;
+    setState(() => _startLetters = true);
+    
+    // letters stagger
+    await Future.delayed(Duration(milliseconds: 80 * _text.length));
+    // hold
+    await Future.delayed(const Duration(milliseconds: 400));
+    
+    if (!mounted) return;
+    setState(() => _startPulse = true);
+    _ctrl.forward().then((_) => _ctrl.reverse());
+    
+    // wait for pulse 600ms
+    await Future.delayed(const Duration(milliseconds: 600));
+    
+    if (!mounted) return;
+    setState(() => _fadeToBlack = true);
+    // wait fade out 400ms
+    await Future.delayed(const Duration(milliseconds: 400));
+    
+    if (!mounted) return;
+    final prefs = await SharedPreferences.getInstance();
+    final onboardComplete = prefs.getBool('onboarding_complete') ?? false;
+
+    final session = Supabase.instance.client.auth.currentSession;
+    if (session != null) {
+      context.go('/dashboard');
+    } else {
+      if (onboardComplete) {
+         context.go('/login');
+      } else {
+         widget.onComplete();
+      }
+    }
   }
 
   @override
   void dispose() {
-    _fadeCtrl.dispose();
+    _ctrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
-      body: Center(
-        child: FadeTransition(
-          opacity: _fade,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Circle logo with E
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.accentGreen, width: 2),
-                ),
-                child: Center(
-                  child: Text(
-                    'E',
-                    style: GoogleFonts.inter(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
+      backgroundColor: const Color(0xFF0A0A0A),
+      body: Stack(
+        children: [
+          Center(
+            child: AnimatedBuilder(
+              animation: _ctrl,
+              builder: (context, child) {
+                final pulseOpacity = 1.0 - (_ctrl.value * 0.3); // 1.0 -> 0.7 -> 1.0
+                return Opacity(
+                  opacity: _startPulse ? pulseOpacity : 1.0,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: List.generate(_text.length, (index) {
+                      return TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0.0, end: _startLetters ? 1.0 : 0.0),
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                        builder: (context, val, child) {
+                          // wait for my stagger
+                          final effectiveVal = _startLetters ? ((val * 10 - index).clamp(0.0, 1.0).toDouble()) : 0.0;
+                          return Opacity(
+                            opacity: effectiveVal,
+                            child: Transform.scale(
+                              scale: 0.5 + (0.5 * effectiveVal),
+                              child: Text(
+                                _text[index],
+                                style: GoogleFonts.playfairDisplay(
+                                  fontSize: 48.sp,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 6,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    }),
                   ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              // App name
-              Text(
-                'ENBRIDGE',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 4.0,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Tagline
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 48),
-                child: Text(
-                  '"Small progress every day leads to big results."',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.playfairDisplay(
-                    fontSize: 16,
-                    fontStyle: FontStyle.italic,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ),
-            ],
+                );
+              },
+            ),
           ),
-        ),
+          AnimatedOpacity(
+            opacity: _fadeToBlack ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 400),
+            child: Container(color: const Color(0xFF0A0A0A)),
+          ),
+        ],
       ),
     );
   }

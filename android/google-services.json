@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "942971465833",
+    "project_id": "enbridge-de637",
+    "storage_bucket": "enbridge-de637.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:942971465833:android:0eaa2d1c7a0a13186472f8",
+        "android_client_info": {
+          "package_name": "com.enbridge.enbridge"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBMb52IECYvTSsfHTMgse6mUyjpaYTtVms"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

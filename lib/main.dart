@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:enbridge/theme/app_theme.dart';
-import 'package:enbridge/screens/splash_screen.dart';
-import 'package:enbridge/screens/onboarding_screen.dart';
-import 'package:enbridge/screens/login_screen.dart';
-import 'package:enbridge/screens/register_screen.dart';
-import 'package:enbridge/screens/main_shell.dart';
+import 'package:enbridge/core/router/router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
@@ -17,83 +16,40 @@ void main() {
     systemNavigationBarIconBrightness: Brightness.light,
   ));
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  runApp(const EnbridgeApp());
+  
+  await Supabase.initialize(
+    url: 'https://utskvawuxkubeehinexf.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0c2t2YXd1eGt1YmVlaGluZXhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNzgzNTUsImV4cCI6MjA5NDg1NDM1NX0.dogKQJtfJc21hlCsb8HZPKliXUL6beUVHl2bLQ1Tb5s',
+  );
+
+  runApp(
+    const ProviderScope(
+      child: EnbridgeApp(),
+    ),
+  );
 }
 
-class EnbridgeApp extends StatelessWidget {
+class EnbridgeApp extends ConsumerWidget {
   const EnbridgeApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Enbridge',
-      debugShowCheckedModeBanner: false,
-      theme: appTheme(),
-      home: const _AppRoot(),
-    );
-  }
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
 
-enum _AppRoute { splash, onboarding, login, register, main }
-
-class _AppRoot extends StatefulWidget {
-  const _AppRoot();
-
-  @override
-  State<_AppRoot> createState() => _AppRootState();
-}
-
-class _AppRootState extends State<_AppRoot> {
-  _AppRoute _route = _AppRoute.splash;
-
-  void _go(_AppRoute next) => setState(() => _route = next);
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 350),
-      transitionBuilder: (child, anim) {
-        final slide = Tween<Offset>(
-          begin: const Offset(0, 0.05),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut));
-        return FadeTransition(
-          opacity: anim,
-          child: SlideTransition(position: slide, child: child),
+    return ScreenUtilInit(
+      designSize: const Size(390, 844),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, child) {
+        return MaterialApp.router(
+          title: 'Enbridge',
+          debugShowCheckedModeBanner: false,
+          theme: appTheme(),
+          routerConfig: router,
         );
       },
-      child: _buildRoute(),
     );
   }
-
-  Widget _buildRoute() {
-    switch (_route) {
-      case _AppRoute.splash:
-        return SplashScreen(
-          key: const ValueKey('splash'),
-          onComplete: () => _go(_AppRoute.onboarding),
-        );
-      case _AppRoute.onboarding:
-        return OnboardingScreen(
-          key: const ValueKey('onboarding'),
-          onComplete: () => _go(_AppRoute.login),
-        );
-      case _AppRoute.login:
-        return LoginScreen(
-          key: const ValueKey('login'),
-          onLogin: () => _go(_AppRoute.main),
-          onRegister: () => _go(_AppRoute.register),
-          onBack: () => _go(_AppRoute.onboarding),
-        );
-      case _AppRoute.register:
-        return RegisterScreen(
-          key: const ValueKey('register'),
-          onRegister: () => _go(_AppRoute.main),
-          onLogin: () => _go(_AppRoute.login),
-          onBack: () => _go(_AppRoute.login),
-        );
-      case _AppRoute.main:
-        return const MainShell(key: ValueKey('main'));
-    }
-  }
 }
+
+

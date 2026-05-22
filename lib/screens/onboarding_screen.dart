@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:enbridge/theme/app_theme.dart';
-import 'package:enbridge/widgets/shared_widgets.dart';
-
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:enbridge/core/supabase/supabase_client.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback onComplete;
@@ -14,24 +17,76 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final _controller = PageController();
-  int _current = 0;
-  final Set<int> _selectedPain = {};
-  int _selectedGoal = -1;
+  String? _selectedCategory;
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  // Fix 1: track selected pain points
+  final Set<String> _selectedPains = {};
+
+  // Fix 2: editable schedule times
+  final Map<String, TimeOfDay> _schedule = {
+    'Wake up': const TimeOfDay(hour: 7, minute: 0),
+    'Deep focus': const TimeOfDay(hour: 9, minute: 0),
+    'Gym': const TimeOfDay(hour: 18, minute: 0),
+    'Sleep': const TimeOfDay(hour: 23, minute: 0),
+  };
+
+  String _formatTime(TimeOfDay t) {
+    final h = t.hourOfPeriod == 0 ? 12 : t.hourOfPeriod;
+    final m = t.minute.toString().padLeft(2, '0');
+    final period = t.period == DayPeriod.am ? 'AM' : 'PM';
+    return '$h:$m $period';
   }
 
-  void _next() {
-    if (_current < 4) {
-      _controller.nextPage(
-        duration: const Duration(milliseconds: 320),
-        curve: Curves.easeOut,
-      );
-    } else {
-      widget.onComplete();
+  void _nextPage() {
+    _controller.nextPage(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  Future<void> _saveOnboardingData() async {
+    try {
+      final user = supabase.auth.currentUser;
+      if (user != null) {
+        await supabase.from('onboarding_responses').upsert({
+          'user_id': user.id,
+          'pain_points': _selectedPains.toList(),
+          'user_type': _selectedCategory ?? 'Everyday You',
+          'schedule': {
+            'wake_up': _formatTime(_schedule['Wake up']!),
+            'deep_focus': _formatTime(_schedule['Deep focus']!),
+            'gym': _formatTime(_schedule['Gym']!),
+            'sleep': _formatTime(_schedule['Sleep']!),
+          },
+        });
+      } else {
+        // Cache for later sync after auth
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setStringList('cached_pain_points', _selectedPains.toList());
+        await prefs.setString('cached_user_type', _selectedCategory ?? 'Everyday You');
+        await prefs.setString('cached_schedule_wake_up', _formatTime(_schedule['Wake up']!));
+        await prefs.setString('cached_schedule_deep_focus', _formatTime(_schedule['Deep focus']!));
+        await prefs.setString('cached_schedule_gym', _formatTime(_schedule['Gym']!));
+        await prefs.setString('cached_schedule_sleep', _formatTime(_schedule['Sleep']!));
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _goToRegister() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('onboarding_complete', true);
+    await _saveOnboardingData();
+    if (mounted) {
+      context.go('/register', extra: _selectedCategory ?? 'Everyday You');
+    }
+  }
+
+  Future<void> _goToLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('onboarding_complete', true);
+    await _saveOnboardingData();
+    if (mounted) {
+      context.go('/login');
     }
   }
 
@@ -39,458 +94,329 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
-      body: Column(
-        children: [
-          Expanded(
-            child: PageView(
+      body: SafeArea(
+        child: Stack(
+          children: [
+            PageView(
               controller: _controller,
-              onPageChanged: (i) => setState(() => _current = i),
+              physics: const NeverScrollableScrollPhysics(),
               children: [
-                _Slide1(onStart: widget.onComplete, onExplore: _next),
-                _Slide2(
-                  selected: _selectedPain,
-                  onToggle: (i) => setState(() {
-                    if (_selectedPain.contains(i)) {
-                      _selectedPain.remove(i);
-                    } else {
-                      _selectedPain.add(i);
-                    }
-                  }),
-                  onNext: _next,
-                ),
-                _Slide3(
-                  selected: _selectedGoal,
-                  onSelect: (i) => setState(() => _selectedGoal = i),
-                  onNext: _next,
-                ),
-                const _Slide4(),
-                _Slide5(onStart: widget.onComplete),
+                _buildPage1(),
+                _buildPage2(),
+                _buildPage3(),
+                _buildPage4(),
+                _buildPage5(),
               ],
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 40),
-            child: SmoothPageIndicator(
-              controller: _controller,
-              count: 5,
-              effect: ExpandingDotsEffect(
-                activeDotColor: AppColors.accentGreen,
-                dotColor: AppColors.textTertiary,
-                dotHeight: 6,
-                dotWidth: 6,
-                expansionFactor: 3,
+            Positioned(
+              top: 16.h,
+              right: 16.w,
+              child: TextButton(
+                onPressed: _goToLogin,
+                child: Text('Skip', style: AppTextStyles.bodySmall.copyWith(color: AppColors.accentGreen)),
               ),
             ),
-          ),
-        ],
+            Positioned(
+              bottom: 30.h,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: SmoothPageIndicator(
+                  controller: _controller,
+                  count: 5,
+                  effect: ExpandingDotsEffect(
+                    activeDotColor: AppColors.accentGreen,
+                    dotColor: AppColors.bgElevated,
+                    dotHeight: 8.h,
+                    dotWidth: 8.w,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
-}
 
-// ─── Slide 1 ──────────────────────────────────────────────────────────────────
-class _Slide1 extends StatelessWidget {
-  final VoidCallback onStart;
-  final VoidCallback onExplore;
-  const _Slide1({required this.onStart, required this.onExplore});
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // Green glow top-left
-        Positioned(
-          top: -60,
-          left: -60,
-          child: Container(
-            width: 300,
-            height: 300,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [Color(0x0F4ADE80), Colors.transparent],
-              ),
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 80, 24, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Bridging you to your maximum potential.',
-                style: AppTextStyles.displayMedium,
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Enbridge creates a personalized roadmap that guides you every step of the way — so you can achieve what matters most.',
-                style: AppTextStyles.bodyMedium,
-              ),
-              const Spacer(),
-              Row(
-                children: [
-                  Expanded(
-                    child: PrimaryButton(
-                      label: 'Start the MVP',
-                      onPressed: onStart,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: SecondaryButton(
-                      label: 'Explore the flow',
-                      onPressed: onExplore,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ─── Slide 2 ──────────────────────────────────────────────────────────────────
-class _Slide2 extends StatelessWidget {
-  final Set<int> selected;
-  final void Function(int) onToggle;
-  final VoidCallback onNext;
-
-  static const _pains = [
-    'I procrastinate constantly',
-    'I forget assignments',
-    'Chores interrupt my study',
-    'I lack consistency',
-  ];
-
-  const _Slide2({
-    required this.selected,
-    required this.onToggle,
-    required this.onNext,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildPage1() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 80, 24, 24),
+      padding: EdgeInsets.symmetric(horizontal: 24.w),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const EyebrowLabel('Do you relate?'),
-          const SizedBox(height: 12),
-          Text('The struggle is real.', style: AppTextStyles.displayMedium),
-          const SizedBox(height: 32),
-          Expanded(
-            child: GridView.count(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 1.4,
-              children: List.generate(_pains.length, (i) {
-                final isSelected = selected.contains(i);
-                return GestureDetector(
-                  onTap: () => onToggle(i),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.bgCard,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: isSelected
-                            ? AppColors.accentGreen
-                            : AppColors.border,
-                        width: isSelected ? 1.5 : 1,
-                      ),
-                    ),
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          top: 0,
-                          right: 0,
-                          child: GreenDot(size: isSelected ? 10 : 7),
-                        ),
-                        Center(
-                          child: Text(
-                            _pains[i],
-                            textAlign: TextAlign.center,
-                            style: AppTextStyles.cardTitle,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
-          const SizedBox(height: 16),
-          PrimaryButton(label: 'Continue →', onPressed: onNext),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Slide 3 ──────────────────────────────────────────────────────────────────
-class _Slide3 extends StatelessWidget {
-  final int selected;
-  final void Function(int) onSelect;
-  final VoidCallback onNext;
-
-  static const _goals = [
-    ('Students', 'Ace your studies, build skills, shape your future.'),
-    ('Professionals', 'Grow your career, lead with impact.'),
-    ('Employees', 'Stay productive, balanced, and fulfilled.'),
-    ('Everyday You', 'Build better habits, better health, a better life.'),
-  ];
-
-  const _Slide3({
-    required this.selected,
-    required this.onSelect,
-    required this.onNext,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 80, 24, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const EyebrowLabel('For every you'),
-          const SizedBox(height: 12),
           Text(
-            'One platform. Every version of you.',
-            style: AppTextStyles.displayMedium,
+            'Enbridge',
+            style: AppTextStyles.displayHeading.copyWith(fontSize: 48.sp),
           ),
-          const SizedBox(height: 28),
-          Expanded(
-            child: ListView.separated(
-              itemCount: _goals.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
-              itemBuilder: (_, i) {
-                final isSelected = selected == i;
-                final num = '0${i + 1}';
-                return GestureDetector(
-                  onTap: () => onSelect(i),
-                  child: Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: AppColors.bgCard,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: isSelected
-                            ? AppColors.accentGreen
-                            : AppColors.border,
-                        width: isSelected ? 1.5 : 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Text(
-                          num,
-                          style: AppTextStyles.labelEyebrow.copyWith(
-                            color: AppColors.textTertiary,
-                            fontSize: 13,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _goals[i].$1,
-                                style: AppTextStyles.cardTitle,
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                _goals[i].$2,
-                                style: AppTextStyles.cardSubtitle,
-                              ),
-                            ],
-                          ),
-                        ),
-                        GreenDot(size: isSelected ? 10 : 7),
-                      ],
-                    ),
-                  ),
-                );
-              },
+          SizedBox(height: 16.h),
+          Text(
+            'Your productivity bridge to maximum potential.',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyMedium,
+          ),
+          SizedBox(height: 48.h),
+          ElevatedButton(
+            onPressed: _nextPage,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.accentGreen,
+              foregroundColor: Colors.black,
+              minimumSize: Size(double.infinity, 50.h),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(50.r),
+              ),
             ),
+            child: const Text('Get Started', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
-          const SizedBox(height: 16),
-          PrimaryButton(label: 'Continue →', onPressed: onNext),
         ],
       ),
     );
   }
-}
 
-// ─── Slide 4 — Schedule ───────────────────────────────────────────────────────
-class _Slide4 extends StatelessWidget {
-  const _Slide4();
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildPage2() {
+    final painOptions = ['Procrastination', 'Lack of focus', 'Disorganized tasks', 'Low motivation'];
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 80, 24, 24),
+      padding: EdgeInsets.symmetric(horizontal: 24.w),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const EyebrowLabel('Your Schedule'),
-          const SizedBox(height: 12),
-          Text('Build your routine.', style: AppTextStyles.displayMedium),
-          const SizedBox(height: 28),
-          Expanded(
-            child: ListView(
-              children: const [
-                _TimeField(label: 'Wake-up time', value: '6:30 AM'),
-                SizedBox(height: 12),
-                _TimeField(label: 'Sleep time', value: '10:30 PM'),
-                SizedBox(height: 12),
-                _TimeField(label: 'Study hours', value: '3 hours'),
-                SizedBox(height: 12),
-                _TimeField(label: 'Gym time', value: '7:00 AM'),
-              ],
-            ),
-          ),
+          Text('What is holding you back?', style: AppTextStyles.displayHeading),
+          SizedBox(height: 8.h),
+          Text('Select all that apply', style: AppTextStyles.bodySmall),
+          SizedBox(height: 24.h),
+          ...painOptions.map((text) => _painCard(text)),
+          SizedBox(height: 48.h),
+          _nextBtn(),
         ],
       ),
     );
   }
-}
 
-class _TimeField extends StatelessWidget {
-  final String label;
-  final String value;
-  const _TimeField({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
+  Widget _painCard(String text) {
+    final isSelected = _selectedPains.contains(text);
+    return GestureDetector(
+      onTap: () => setState(() {
+        if (isSelected) {
+          _selectedPains.remove(text);
+        } else {
+          _selectedPains.add(text);
+        }
+      }),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: EdgeInsets.only(bottom: 12.h),
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 18.h),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.accentGreen.withValues(alpha: 0.12) : AppColors.bgCard,
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(
+            color: isSelected ? AppColors.accentGreen : AppColors.border,
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 22.w,
+              height: 22.w,
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.accentGreen : Colors.transparent,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected ? AppColors.accentGreen : AppColors.border,
+                  width: 1.5,
+                ),
+              ),
+              child: isSelected
+                  ? Icon(Icons.check_rounded, color: Colors.black, size: 14.sp)
+                  : null,
+            ),
+            SizedBox(width: 16.w),
+            Text(
+              text,
+              style: AppTextStyles.cardTitle.copyWith(
+                color: isSelected ? AppColors.accentGreen : AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildPage3() {
+    final types = ['Student', 'Professional', 'Employee', 'Everyday You'];
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 24.w),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Who are you?', style: AppTextStyles.displayHeading),
+          SizedBox(height: 32.h),
+          ...types.map((e) => GestureDetector(
+                onTap: () => setState(() => _selectedCategory = e),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  margin: EdgeInsets.only(bottom: 12.h),
+                  width: double.infinity,
+                  padding: EdgeInsets.all(16.w),
+                  decoration: BoxDecoration(
+                    color: _selectedCategory == e ? AppColors.accentGreen.withValues(alpha: 0.12) : AppColors.bgCard,
+                    borderRadius: BorderRadius.circular(14.r),
+                    border: Border.all(
+                      color: _selectedCategory == e ? AppColors.accentGreen : AppColors.border,
+                      width: _selectedCategory == e ? 1.5 : 1,
+                    ),
+                  ),
+                  child: Text(e, style: AppTextStyles.cardTitle.copyWith(
+                    color: _selectedCategory == e ? AppColors.accentGreen : AppColors.textPrimary,
+                  )),
+                ),
+              )),
+          SizedBox(height: 48.h),
+          _nextBtn(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPage4() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 24.w),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Ideal schedule', style: AppTextStyles.displayHeading),
+          SizedBox(height: 8.h),
+          Text('Tap a time to edit it', style: AppTextStyles.bodySmall),
+          SizedBox(height: 32.h),
+          ..._schedule.entries.map((e) => _timeRow(e.key, e.value)),
+          SizedBox(height: 48.h),
+          _nextBtn(),
+        ],
+      ),
+    );
+  }
+
+  Widget _timeRow(String label, TimeOfDay time) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 20.h),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: AppTextStyles.bodyMedium),
-          Text(value, style: AppTextStyles.cardTitle),
+          GestureDetector(
+            onTap: () async {
+              final picked = await showTimePicker(
+                context: context,
+                initialTime: time,
+                builder: (ctx, child) => Theme(
+                  data: Theme.of(ctx).copyWith(
+                    colorScheme: const ColorScheme.dark(
+                      primary: AppColors.accentGreen,
+                      onPrimary: Colors.black,
+                      surface: Color(0xFF1A1A1A),
+                      onSurface: Colors.white,
+                    ),
+                  ),
+                  child: child!,
+                ),
+              );
+              if (picked != null) {
+                setState(() => _schedule[label] = picked);
+              }
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+              decoration: BoxDecoration(
+                color: AppColors.bgCard,
+                borderRadius: BorderRadius.circular(8.r),
+                border: Border.all(color: AppColors.accentGreen.withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _formatTime(time),
+                    style: GoogleFonts.inter(
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.accentGreen,
+                    ),
+                  ),
+                  SizedBox(width: 6.w),
+                  Icon(Icons.edit_rounded, color: AppColors.accentGreen, size: 14.sp),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
-}
 
-// ─── Slide 5 — Permissions ────────────────────────────────────────────────────
-class _Slide5 extends StatefulWidget {
-  final VoidCallback onStart;
-  const _Slide5({required this.onStart});
-
-  @override
-  State<_Slide5> createState() => _Slide5State();
-}
-
-class _Slide5State extends State<_Slide5> {
-  bool _notif = true, _alarm = false, _calendar = false;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildPage5() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 80, 24, 24),
+      padding: EdgeInsets.symmetric(horizontal: 24.w),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const EyebrowLabel('Permissions'),
-          const SizedBox(height: 12),
-          Text('Almost there.', style: AppTextStyles.displayMedium),
-          const SizedBox(height: 28),
-          _ToggleRow(
-            label: 'Notifications',
-            subtitle: 'Get smart reminders for your tasks',
-            value: _notif,
-            onChanged: (v) => setState(() => _notif = v),
+          Icon(Icons.notifications_active_outlined, size: 64.sp, color: AppColors.accentGreen),
+          SizedBox(height: 24.h),
+          Text('Stay on track', style: AppTextStyles.displayHeading),
+          SizedBox(height: 16.h),
+          Text(
+            'We will need permissions to send you reminders and notifications to keep you accountable.',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyMedium,
           ),
-          const SizedBox(height: 10),
-          _ToggleRow(
-            label: 'Alarm access',
-            subtitle: 'Wake up on time with Enbridge',
-            value: _alarm,
-            onChanged: (v) => setState(() => _alarm = v),
+          SizedBox(height: 48.h),
+          ElevatedButton(
+            onPressed: _goToRegister,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.accentGreen,
+              foregroundColor: Colors.black,
+              minimumSize: Size(double.infinity, 50.h),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(50.r),
+              ),
+            ),
+            child: const Text('Create Account', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
-          const SizedBox(height: 10),
-          _ToggleRow(
-            label: 'Calendar sync',
-            subtitle: 'Sync your schedule automatically',
-            value: _calendar,
-            onChanged: (v) => setState(() => _calendar = v),
+          SizedBox(height: 16.h),
+          TextButton(
+            onPressed: _goToLogin,
+            style: TextButton.styleFrom(
+              minimumSize: Size(double.infinity, 50.h),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(50.r),
+                side: BorderSide(color: AppColors.border),
+              ),
+            ),
+            child: Text('Log In', style: TextStyle(color: AppColors.textPrimary)),
           ),
-          const Spacer(),
-          PrimaryButton(label: 'Get started', onPressed: widget.onStart),
         ],
       ),
     );
   }
-}
 
-class _ToggleRow extends StatelessWidget {
-  final String label;
-  final String subtitle;
-  final bool value;
-  final void Function(bool) onChanged;
-
-  const _ToggleRow({
-    required this.label,
-    required this.subtitle,
-    required this.value,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+  Widget _nextBtn() {
+    return ElevatedButton(
+      onPressed: _nextPage,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.textPrimary,
+        foregroundColor: Colors.black,
+        minimumSize: Size(double.infinity, 50.h),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(50.r),
+        ),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: AppTextStyles.cardTitle),
-                const SizedBox(height: 2),
-                Text(subtitle, style: AppTextStyles.cardSubtitle),
-              ],
-            ),
-          ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: AppColors.accentGreen,
-            trackColor: WidgetStateProperty.resolveWith(
-              (s) => s.contains(WidgetState.selected)
-                  ? AppColors.accentGreen.withValues(alpha: 0.3)
-                  : AppColors.bgElevated,
-            ),
-            thumbColor: WidgetStateProperty.resolveWith(
-              (s) => s.contains(WidgetState.selected)
-                  ? AppColors.accentGreen
-                  : AppColors.textTertiary,
-            ),
-          ),
-        ],
-      ),
+      child: const Text('Continue'),
     );
   }
 }

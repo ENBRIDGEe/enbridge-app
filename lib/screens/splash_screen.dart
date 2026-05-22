@@ -118,6 +118,24 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               },
             ),
           ),
+          Positioned(
+            bottom: 40.h,
+            left: 0,
+            right: 0,
+            child: AnimatedOpacity(
+              opacity: _startLetters ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 800),
+              child: Center(
+                child: Text(
+                  'Made with ❤️ by Navneet',
+                  style: GoogleFonts.inter(
+                    fontSize: 14.sp,
+                    color: const Color(0xFF888880),
+                  ),
+                ),
+              ),
+            ),
+          ),
           AnimatedOpacity(
             opacity: _fadeToBlack ? 1.0 : 0.0,
             duration: const Duration(milliseconds: 400),

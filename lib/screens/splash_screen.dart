@@ -127,7 +127,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               duration: const Duration(milliseconds: 800),
               child: Center(
                 child: Text(
-                  'Made with ❤️ by Navneet',
+                  'Made with ❤️ by Navneet & Debangshu',
                   style: GoogleFonts.inter(
                     fontSize: 14.sp,
                     color: const Color(0xFF888880),

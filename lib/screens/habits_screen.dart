@@ -142,8 +142,10 @@ class _HabitsScreenState extends State<HabitsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
-      floatingActionButton: GestureDetector(
-        onTap: _openAddHabit,
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(bottom: 80.h),
+        child: GestureDetector(
+          onTap: _openAddHabit,
         child: Container(
           height: 56.h,
           padding: EdgeInsets.symmetric(horizontal: 24.w),
@@ -161,6 +163,7 @@ class _HabitsScreenState extends State<HabitsScreen> {
             ],
           ),
         ),
+      ),
       ),
       body: SafeArea(
         child: Padding(

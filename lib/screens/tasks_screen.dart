@@ -137,8 +137,10 @@ class _TasksScreenState extends State<TasksScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
-      floatingActionButton: GestureDetector(
-        onTap: _openAddTask,
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(bottom: 80.h),
+        child: GestureDetector(
+          onTap: _openAddTask,
         child: Container(
           height: 56.h,
           padding: EdgeInsets.symmetric(horizontal: 24.w),
@@ -156,6 +158,7 @@ class _TasksScreenState extends State<TasksScreen> {
             ],
           ),
         ),
+      ),
       ),
       body: SafeArea(
         child: Padding(

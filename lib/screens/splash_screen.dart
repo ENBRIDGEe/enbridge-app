@@ -55,6 +55,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     final onboardComplete = prefs.getBool('onboarding_complete') ?? false;
 
     final session = Supabase.instance.client.auth.currentSession;
+    if (!mounted) return;
     if (session != null) {
       context.go('/dashboard');
     } else {
@@ -127,7 +128,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               duration: const Duration(milliseconds: 800),
               child: Center(
                 child: Text(
-                  'Made with ❤️ by Navneet & Debangshu',
+                  'Made with ❤️ by Navneet',
                   style: GoogleFonts.inter(
                     fontSize: 14.sp,
                     color: const Color(0xFF888880),

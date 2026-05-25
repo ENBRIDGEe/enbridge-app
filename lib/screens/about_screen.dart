@@ -144,7 +144,7 @@ class AboutScreen extends StatelessWidget {
               SizedBox(height: 16.h),
               Center(
                 child: Text(
-                  'Developed by Debangshu & Navneet',
+                  'Developed by Navneet',
                   style: GoogleFonts.inter(
                     fontSize: 13.sp,
                     color: const Color(0xFF888880),

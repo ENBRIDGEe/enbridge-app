@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:enbridge/theme/app_theme.dart';
@@ -408,12 +409,16 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: Container(
-        padding: EdgeInsets.fromLTRB(20.w, 24.h, 20.w, 32.h),
-        decoration: BoxDecoration(
-          color: AppColors.bgSurface,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-        ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+          child: Container(
+            padding: EdgeInsets.fromLTRB(20.w, 24.h, 20.w, 32.h),
+            decoration: BoxDecoration(
+              color: AppColors.bgSurface.withValues(alpha: 0.6),
+              border: Border(top: BorderSide(color: AppColors.border.withValues(alpha: 0.5), width: 1)),
+            ),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -630,6 +635,8 @@ class _AddTaskSheetState extends State<AddTaskSheet> {
           ),
         ),
       ),
+    ),
+    ),
     );
   }
 }

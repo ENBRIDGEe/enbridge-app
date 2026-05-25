@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:enbridge/theme/app_theme.dart';
 
@@ -41,6 +42,7 @@ class MainShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final currentIndex = _calculateSelectedIndex(context);
     return Scaffold(
+      extendBody: true, // Enables glassmorphism effect by letting body scroll behind bottom nav
       backgroundColor: AppColors.bgPrimary,
       body: child,
       bottomNavigationBar: _BottomNav(
@@ -69,17 +71,20 @@ class _BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 64 + MediaQuery.of(context).padding.bottom,
-      decoration: const BoxDecoration(
-        color: AppColors.navBg,
-        border: Border(top: BorderSide(color: AppColors.border, width: 1)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: List.generate(_items.length, (i) {
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        child: Container(
+          height: 64 + MediaQuery.of(context).padding.bottom,
+          decoration: BoxDecoration(
+            color: AppColors.navBg.withValues(alpha: 0.6), // Glassmorphism transparency
+            border: const Border(top: BorderSide(color: AppColors.border, width: 1)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: List.generate(_items.length, (i) {
             final isSelected = currentIndex == i;
             return GestureDetector(
               behavior: HitTestBehavior.opaque,
@@ -112,6 +117,8 @@ class _BottomNav extends StatelessWidget {
             );
           }),
         ),
+      ),
+    ),
       ),
     );
   }

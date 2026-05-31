@@ -61,7 +61,9 @@ class AIVASessionCard extends StatelessWidget {
                       session.topic,
                       style: AppTextStyles.cardTitle.copyWith(
                         fontSize: 15.sp,
-                        color: isActive ? AppColors.aivaBlueMid : AppColors.textPrimary,
+                        color: isActive
+                            ? AppColors.aivaBlueMid
+                            : AppColors.textPrimary,
                       ),
                     ),
                   ),
@@ -138,7 +140,7 @@ class _LiveBadgeState extends State<_LiveBadge>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _ctrl,
-      builder: (_, _) => Container(
+      builder: (_, __) => Container(
         padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
         decoration: BoxDecoration(
           color: AppColors.aivaBlue.withValues(alpha: 0.15 + _ctrl.value * 0.1),
@@ -155,7 +157,9 @@ class _LiveBadgeState extends State<_LiveBadge>
               width: 6.w,
               height: 6.w,
               decoration: BoxDecoration(
-                color: AppColors.aivaBlueMid.withValues(alpha: 0.6 + _ctrl.value * 0.4),
+                color: AppColors.aivaBlueMid.withValues(
+                  alpha: 0.6 + _ctrl.value * 0.4,
+                ),
                 shape: BoxShape.circle,
               ),
             ),
@@ -180,7 +184,11 @@ class _StatChip extends StatelessWidget {
   final String label;
   final bool active;
 
-  const _StatChip({required this.icon, required this.label, this.active = false});
+  const _StatChip({
+    required this.icon,
+    required this.label,
+    this.active = false,
+  });
 
   @override
   Widget build(BuildContext context) {

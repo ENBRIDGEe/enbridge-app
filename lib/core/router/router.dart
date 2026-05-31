@@ -14,6 +14,7 @@ import 'package:enbridge/screens/profile_screen.dart';
 import 'package:enbridge/screens/aiva_screen.dart';
 import 'package:enbridge/screens/calendar_screen.dart';
 import 'package:enbridge/screens/main_shell.dart';
+import 'package:enbridge/screens/aiva_chat_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authStatusAsync = ref.watch(authStatusProvider);
@@ -70,6 +71,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/reset-password',
         builder: (context, state) => const ResetPasswordScreen(),
+      ),
+      GoRoute(
+        path: '/aiva/chat',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final topic = extra?['topic'] as String? ?? 'General Session';
+          return AivaChatScreen(topic: topic);
+        },
       ),
       ShellRoute(
         builder: (context, state, child) => MainShell(child: child),

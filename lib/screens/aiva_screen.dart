@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:enbridge/theme/app_theme.dart';
 import 'package:enbridge/core/providers/aiva_provider.dart';
@@ -126,7 +127,13 @@ class AIVAScreen extends ConsumerWidget {
                       final session = pastSessions[index];
                       return Padding(
                         padding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 12.h),
-                        child: AIVASessionCard(session: session),
+                        child: GestureDetector(
+                          onTap: () => context.push(
+                            '/aiva/chat',
+                            extra: {'topic': session.topic},
+                          ),
+                          child: AIVASessionCard(session: session),
+                        ),
                       );
                     },
                     childCount: pastSessions.length,
@@ -218,10 +225,9 @@ class _HeroRingSection extends StatelessWidget {
             isActive: activeSession != null,
             onTap: () {
               if (activeSession == null) {
-                ref.read(aivaSessionProvider.notifier).startNewSession('New Session');
                 _showNewSessionSheet(context, ref);
               } else {
-                _showNewSessionSheet(context, ref);
+                context.push('/aiva/chat', extra: {'topic': activeSession!.topic});
               }
             },
           ),
@@ -240,7 +246,9 @@ class _HeroRingSection extends StatelessWidget {
         controller: topicCtrl,
         onStart: (topic) {
           ref.read(aivaSessionProvider.notifier).startNewSession(topic);
+          ref.read(aivaChatProvider.notifier).reset();
           Navigator.pop(context);
+          context.push('/aiva/chat', extra: {'topic': topic});
         },
       ),
     );

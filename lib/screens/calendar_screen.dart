@@ -43,10 +43,17 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       children: [
                         Text(
                           'SCHEDULE',
-                          style: AppTextStyles.labelEyebrow.copyWith(fontSize: 10.sp),
+                          style: AppTextStyles.labelEyebrow.copyWith(
+                            fontSize: 10.sp,
+                          ),
                         ),
                         SizedBox(height: 4.h),
-                        Text('Calendar', style: AppTextStyles.displaySmall.copyWith(fontSize: 22.sp)),
+                        Text(
+                          'Calendar',
+                          style: AppTextStyles.displaySmall.copyWith(
+                            fontSize: 22.sp,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -129,23 +136,33 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     headerStyle: HeaderStyle(
                       formatButtonVisible: true,
                       titleCentered: true,
-                      titleTextStyle: AppTextStyles.cardTitle.copyWith(fontSize: 14.sp),
+                      titleTextStyle: AppTextStyles.cardTitle.copyWith(
+                        fontSize: 14.sp,
+                      ),
                       formatButtonDecoration: BoxDecoration(
                         border: Border.all(color: AppColors.borderMid),
                         borderRadius: BorderRadius.circular(8.r),
                       ),
-                      formatButtonTextStyle: AppTextStyles.bodySmall.copyWith(fontSize: 11.sp),
-                      leftChevronIcon: const Icon(Icons.chevron_left_rounded,
-                          color: AppColors.textSecondary),
-                      rightChevronIcon: const Icon(Icons.chevron_right_rounded,
-                          color: AppColors.textSecondary),
+                      formatButtonTextStyle: AppTextStyles.bodySmall.copyWith(
+                        fontSize: 11.sp,
+                      ),
+                      leftChevronIcon: const Icon(
+                        Icons.chevron_left_rounded,
+                        color: AppColors.textSecondary,
+                      ),
+                      rightChevronIcon: const Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                     daysOfWeekStyle: DaysOfWeekStyle(
                       weekdayStyle: AppTextStyles.labelEyebrow.copyWith(
-                        fontSize: 10.sp, letterSpacing: 0,
+                        fontSize: 10.sp,
+                        letterSpacing: 0,
                       ),
                       weekendStyle: AppTextStyles.labelEyebrow.copyWith(
-                        fontSize: 10.sp, letterSpacing: 0,
+                        fontSize: 10.sp,
+                        letterSpacing: 0,
                         color: AppColors.textTertiary,
                       ),
                     ),
@@ -182,9 +199,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 loading: () => const Center(
                   child: CircularProgressIndicator(color: AppColors.aivaBlue),
                 ),
-                error: (_, _) => Center(
-                  child: Text('Could not load events',
-                      style: AppTextStyles.bodySmall),
+                error: (_, __) => Center(
+                  child: Text(
+                    'Could not load events',
+                    style: AppTextStyles.bodySmall,
+                  ),
                 ),
                 data: (_) {
                   if (selectedEvents.isEmpty) {
@@ -192,19 +211,28 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.event_note_outlined,
-                              size: 40.sp, color: AppColors.textTertiary),
+                          Icon(
+                            Icons.event_note_outlined,
+                            size: 40.sp,
+                            color: AppColors.textTertiary,
+                          ),
                           SizedBox(height: 12.h),
-                          Text('No events for this day',
-                              style: AppTextStyles.bodySmall),
+                          Text(
+                            'No events for this day',
+                            style: AppTextStyles.bodySmall,
+                          ),
                           SizedBox(height: 8.h),
                           TextButton.icon(
                             onPressed: () => _showAddEventSheet(context),
-                            icon: const Icon(Icons.add, color: AppColors.accentGreen),
+                            icon: const Icon(
+                              Icons.add,
+                              color: AppColors.accentGreen,
+                            ),
                             label: Text(
                               'Add event',
-                              style: AppTextStyles.bodySmall
-                                  .copyWith(color: AppColors.accentGreen),
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.accentGreen,
+                              ),
                             ),
                           ),
                         ],
@@ -218,8 +246,9 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       final event = selectedEvents[index];
                       return EventCard(
                         event: event,
-                        onDelete: () =>
-                            ref.read(calendarProvider.notifier).deleteEvent(event.id),
+                        onDelete: () => ref
+                            .read(calendarProvider.notifier)
+                            .deleteEvent(event.id),
                       );
                     },
                   );
@@ -244,8 +273,21 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     final now = DateTime.now();
     if (isSameDay(day, now)) return 'TODAY';
     if (isSameDay(day, now.add(const Duration(days: 1)))) return 'TOMORROW';
-    const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-    const days = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
+    const months = [
+      'JAN',
+      'FEB',
+      'MAR',
+      'APR',
+      'MAY',
+      'JUN',
+      'JUL',
+      'AUG',
+      'SEP',
+      'OCT',
+      'NOV',
+      'DEC',
+    ];
+    const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
     return '${days[day.weekday - 1]}, ${months[day.month - 1]} ${day.day}';
   }
 
@@ -306,7 +348,9 @@ class _AddEventSheetState extends State<_AddEventSheet> {
         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
         child: Container(
           padding: EdgeInsets.fromLTRB(
-            24.w, 16.h, 24.w,
+            24.w,
+            16.h,
+            24.w,
             MediaQuery.of(context).viewInsets.bottom + 32.h,
           ),
           constraints: BoxConstraints(
@@ -323,7 +367,8 @@ class _AddEventSheetState extends State<_AddEventSheet> {
               children: [
                 Center(
                   child: Container(
-                    width: 36.w, height: 4.h,
+                    width: 36.w,
+                    height: 4.h,
                     decoration: BoxDecoration(
                       color: AppColors.border,
                       borderRadius: BorderRadius.circular(2.r),
@@ -331,14 +376,19 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                   ),
                 ),
                 SizedBox(height: 20.h),
-                Text('New Event', style: AppTextStyles.displaySmall.copyWith(fontSize: 20.sp)),
+                Text(
+                  'New Event',
+                  style: AppTextStyles.displaySmall.copyWith(fontSize: 20.sp),
+                ),
                 SizedBox(height: 20.h),
 
                 // Title
                 TextField(
                   controller: _titleCtrl,
                   style: AppTextStyles.inputText,
-                  decoration: AppDecorations.inputDecoration(hint: 'Event title'),
+                  decoration: AppDecorations.inputDecoration(
+                    hint: 'Event title',
+                  ),
                 ),
                 SizedBox(height: 12.h),
 
@@ -347,46 +397,55 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                   controller: _descCtrl,
                   style: AppTextStyles.inputText,
                   maxLines: 2,
-                  decoration: AppDecorations.inputDecoration(hint: 'Description (optional)'),
+                  decoration: AppDecorations.inputDecoration(
+                    hint: 'Description (optional)',
+                  ),
                 ),
                 SizedBox(height: 16.h),
 
                 // Date + Time row
                 Row(
                   children: [
-                    Expanded(child: _PickerTile(
-                      icon: Icons.calendar_today_outlined,
-                      label: _formatDate(_date),
-                      onTap: () async {
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: _date,
-                          firstDate: DateTime(2024),
-                          lastDate: DateTime(2030),
-                          builder: (ctx, child) => _darkPicker(ctx, child),
-                        );
-                        if (picked != null) setState(() => _date = picked);
-                      },
-                    )),
+                    Expanded(
+                      child: _PickerTile(
+                        icon: Icons.calendar_today_outlined,
+                        label: _formatDate(_date),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: _date,
+                            firstDate: DateTime(2024),
+                            lastDate: DateTime(2030),
+                            builder: (ctx, child) => _darkPicker(ctx, child),
+                          );
+                          if (picked != null) setState(() => _date = picked);
+                        },
+                      ),
+                    ),
                     SizedBox(width: 10.w),
-                    Expanded(child: _PickerTile(
-                      icon: Icons.access_time_rounded,
-                      label: _time.format(context),
-                      onTap: () async {
-                        final picked = await showTimePicker(
-                          context: context,
-                          initialTime: _time,
-                          builder: (ctx, child) => _darkPicker(ctx, child),
-                        );
-                        if (picked != null) setState(() => _time = picked);
-                      },
-                    )),
+                    Expanded(
+                      child: _PickerTile(
+                        icon: Icons.access_time_rounded,
+                        label: _time.format(context),
+                        onTap: () async {
+                          final picked = await showTimePicker(
+                            context: context,
+                            initialTime: _time,
+                            builder: (ctx, child) => _darkPicker(ctx, child),
+                          );
+                          if (picked != null) setState(() => _time = picked);
+                        },
+                      ),
+                    ),
                   ],
                 ),
                 SizedBox(height: 16.h),
 
                 // Event type
-                Text('Type', style: AppTextStyles.bodySmall.copyWith(fontSize: 12.sp)),
+                Text(
+                  'Type',
+                  style: AppTextStyles.bodySmall.copyWith(fontSize: 12.sp),
+                ),
                 SizedBox(height: 8.h),
                 Wrap(
                   spacing: 8.w,
@@ -397,19 +456,28 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                       onTap: () => setState(() => _type = t),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
-                        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 14.w,
+                          vertical: 8.h,
+                        ),
                         decoration: BoxDecoration(
-                          color: sel ? AppColors.aivaBlue.withValues(alpha: 0.2) : AppColors.bgCard,
+                          color: sel
+                              ? AppColors.aivaBlue.withValues(alpha: 0.2)
+                              : AppColors.bgCard,
                           borderRadius: BorderRadius.circular(20.r),
                           border: Border.all(
-                            color: sel ? AppColors.aivaBlueMid : AppColors.border,
+                            color: sel
+                                ? AppColors.aivaBlueMid
+                                : AppColors.border,
                             width: sel ? 1.5 : 1,
                           ),
                         ),
                         child: Text(
                           t.label,
                           style: AppTextStyles.tagLabel.copyWith(
-                            color: sel ? AppColors.aivaBlueMid : AppColors.textSecondary,
+                            color: sel
+                                ? AppColors.aivaBlueMid
+                                : AppColors.textSecondary,
                             fontSize: 12.sp,
                           ),
                         ),
@@ -421,23 +489,34 @@ class _AddEventSheetState extends State<_AddEventSheet> {
 
                 // Reminder toggle
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 12.h,
+                  ),
                   decoration: AppDecorations.card(radius: 14),
                   child: Row(
                     children: [
-                      Icon(Icons.notifications_outlined,
-                          size: 18.sp, color: AppColors.textSecondary),
+                      Icon(
+                        Icons.notifications_outlined,
+                        size: 18.sp,
+                        color: AppColors.textSecondary,
+                      ),
                       SizedBox(width: 10.w),
                       Expanded(
-                        child: Text('Set reminder',
-                            style: AppTextStyles.cardTitle.copyWith(fontSize: 14.sp)),
+                        child: Text(
+                          'Set reminder',
+                          style: AppTextStyles.cardTitle.copyWith(
+                            fontSize: 14.sp,
+                          ),
+                        ),
                       ),
                       Switch(
                         value: _hasReminder,
                         onChanged: (v) => setState(() => _hasReminder = v),
-                        activeThumbColor: AppColors.accentGreen,
+                        activeColor: AppColors.accentGreen,
                         trackColor: WidgetStateProperty.all(
-                            AppColors.accentGreen.withValues(alpha: 0.2)),
+                          AppColors.accentGreen.withValues(alpha: 0.2),
+                        ),
                       ),
                     ],
                   ),
@@ -454,7 +533,8 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                         initialTime: _reminderTime,
                         builder: (ctx, child) => _darkPicker(ctx, child),
                       );
-                      if (picked != null) setState(() => _reminderTime = picked);
+                      if (picked != null)
+                        setState(() => _reminderTime = picked);
                     },
                   ),
                 ],
@@ -468,7 +548,10 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [AppColors.aivaGradStart, AppColors.aivaGradEnd],
+                        colors: [
+                          AppColors.aivaGradStart,
+                          AppColors.aivaGradEnd,
+                        ],
                       ),
                       borderRadius: BorderRadius.circular(50.r),
                     ),
@@ -505,13 +588,20 @@ class _AddEventSheetState extends State<_AddEventSheet> {
     if (title.isEmpty) return;
 
     final eventDt = DateTime(
-      _date.year, _date.month, _date.day, _time.hour, _time.minute,
+      _date.year,
+      _date.month,
+      _date.day,
+      _time.hour,
+      _time.minute,
     );
     DateTime? reminderDt;
     if (_hasReminder) {
       reminderDt = DateTime(
-        _date.year, _date.month, _date.day,
-        _reminderTime.hour, _reminderTime.minute,
+        _date.year,
+        _date.month,
+        _date.day,
+        _reminderTime.hour,
+        _reminderTime.minute,
       );
     }
 
@@ -531,7 +621,20 @@ class _AddEventSheetState extends State<_AddEventSheet> {
   }
 
   String _formatDate(DateTime dt) {
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
   }
 

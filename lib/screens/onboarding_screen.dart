@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:enbridge/theme/app_theme.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
@@ -6,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:enbridge/core/supabase/supabase_client.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:enbridge/widgets/aiva_ring_widget.dart';
 
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback onComplete;
@@ -140,36 +142,183 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildPage1() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 24.w),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Enbridge',
-            style: AppTextStyles.displayHeading.copyWith(fontSize: 48.sp),
-          ),
-          SizedBox(height: 16.h),
-          Text(
-            'Your productivity bridge to maximum potential.',
-            textAlign: TextAlign.center,
-            style: AppTextStyles.bodyMedium,
-          ),
-          SizedBox(height: 48.h),
-          ElevatedButton(
-            onPressed: _nextPage,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.accentGreen,
-              foregroundColor: Colors.black,
-              minimumSize: Size(double.infinity, 50.h),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(50.r),
+    return Stack(
+      children: [
+        // Radial background glow — AIVA brand blue
+        Positioned(
+          top: -50,
+          right: -80,
+          child: Container(
+            width: 280,
+            height: 280,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  AppColors.aivaBlue.withValues(alpha: 0.12),
+                  Colors.transparent,
+                ],
               ),
             ),
-            child: const Text('Get Started', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
-        ],
-      ),
+        ),
+        Positioned(
+          bottom: 100,
+          left: -60,
+          child: Container(
+            width: 200,
+            height: 200,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  AppColors.aivaBlue.withValues(alpha: 0.07),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ),
+
+        // Main content
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 24.w),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(height: 20.h),
+
+              // AIVA ring animation
+              AIVARingWidget(size: 180.w, animate: true),
+
+              SizedBox(height: 32.h),
+
+              // AIVA powered badge
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
+                decoration: BoxDecoration(
+                  color: AppColors.aivaBlue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20.r),
+                  border: Border.all(
+                    color: AppColors.aivaBlueMid.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  '✦  Powered by AIVA AI',
+                  style: AppTextStyles.labelEyebrow.copyWith(
+                    fontSize: 10.sp,
+                    color: AppColors.aivaBlueMid,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+              ),
+
+              SizedBox(height: 20.h),
+
+              // Headline with gradient
+              ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: [AppColors.textPrimary, AppColors.aivaBlueMid],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ).createShader(bounds),
+                child: Text(
+                  'Enbridge',
+                  style: GoogleFonts.playfairDisplay(
+                    fontSize: 52.sp,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    height: 1.1,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+
+              SizedBox(height: 12.h),
+
+              Text(
+                'Your productivity bridge\nto maximum potential.',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  height: 1.6,
+                  fontSize: 14.sp,
+                ),
+              ),
+
+              SizedBox(height: 40.h),
+
+              // Primary CTA — blue gradient (AIVA style)
+              GestureDetector(
+                onTap: _nextPage,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(50.r),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                    child: Container(
+                      width: double.infinity,
+                      height: 52.h,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [AppColors.aivaGradStart, AppColors.aivaGradEnd],
+                        ),
+                        borderRadius: BorderRadius.circular(50.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.aivaBlue.withValues(alpha: 0.4),
+                            blurRadius: 24,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Get Started',
+                          style: GoogleFonts.inter(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              SizedBox(height: 12.h),
+
+              // Secondary CTA — ghost
+              GestureDetector(
+                onTap: _goToLogin,
+                child: Container(
+                  width: double.infinity,
+                  height: 52.h,
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(50.r),
+                    border: Border.all(
+                      color: AppColors.borderMid,
+                      width: 1,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Log In',
+                      style: GoogleFonts.inter(
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

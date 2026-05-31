@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:enbridge/theme/app_theme.dart';
 import 'package:enbridge/core/router/router.dart';
+import 'package:enbridge/core/services/notification_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -26,6 +27,9 @@ void main() async {
     url: supabaseUrl,
     anonKey: supabaseAnonKey,
   );
+
+  // Initialize local notifications
+  await NotificationService.instance.initialize();
 
   runApp(
     const ProviderScope(

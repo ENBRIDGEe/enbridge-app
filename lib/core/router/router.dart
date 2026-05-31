@@ -11,6 +11,8 @@ import 'package:enbridge/screens/tasks_screen.dart';
 import 'package:enbridge/screens/focus_screen.dart';
 import 'package:enbridge/screens/habits_screen.dart';
 import 'package:enbridge/screens/profile_screen.dart';
+import 'package:enbridge/screens/aiva_screen.dart';
+import 'package:enbridge/screens/calendar_screen.dart';
 import 'package:enbridge/screens/main_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -32,7 +34,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           loc.startsWith('/reset-password');
 
       if (isLoading) return null;
-      // Password recovery: always redirect to the reset screen
       if (isRecovery) return '/reset-password';
       if (loc == '/splash') return null;
       if (loc == '/onboarding') return null;
@@ -66,7 +67,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           return RegisterScreen(category: cat);
         },
       ),
-      // Password reset screen — reached via deep link from email
       GoRoute(
         path: '/reset-password',
         builder: (context, state) => const ResetPasswordScreen(),
@@ -81,6 +81,16 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/tasks',
             builder: (context, state) => const TasksScreen(),
+          ),
+          // ── NEW: AIVA AI tab ──────────────────────────────────────────
+          GoRoute(
+            path: '/aiva',
+            builder: (context, state) => const AIVAScreen(),
+          ),
+          // ── NEW: Calendar tab ─────────────────────────────────────────
+          GoRoute(
+            path: '/calendar',
+            builder: (context, state) => const CalendarScreen(),
           ),
           GoRoute(
             path: '/focus',

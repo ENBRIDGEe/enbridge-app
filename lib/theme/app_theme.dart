@@ -18,6 +18,14 @@ class AppColors {
   static const accentOrange = Color(0xFFF97316);
   static const accentRed    = Color(0xFFE74C3C);
 
+  // AIVA Blue Identity (from AIVA Freelancia hero page)
+  static const aivaBlue      = Color(0xFF4E85BF);
+  static const aivaBlueMid   = Color(0xFF89AACC);
+  static const aivaGradStart = Color(0xFF89AACC);
+  static const aivaGradEnd   = Color(0xFF4E85BF);
+  static const aivaRingGlow  = Color(0x334E85BF);
+
+
   static const border       = Color(0x10FFFFFF);
   static const borderMid    = Color(0x18FFFFFF);
   static const borderStrong = Color(0x15FFFFFF);

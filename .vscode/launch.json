@@ -1,0 +1,29 @@
+{
+  // VS Code launch config for Enbridge Flutter app.
+  // Loads secrets from .env via --dart-define (never committed).
+  // Copy .env.example → .env and fill in values before running.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Enbridge (Dev)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "args": [
+        "--dart-define=SUPABASE_URL=${env:SUPABASE_URL}",
+        "--dart-define=SUPABASE_ANON_KEY=${env:SUPABASE_ANON_KEY}"
+      ]
+    },
+    {
+      "name": "Enbridge (Release)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "flutterMode": "release",
+      "args": [
+        "--dart-define=SUPABASE_URL=${env:SUPABASE_URL}",
+        "--dart-define=SUPABASE_ANON_KEY=${env:SUPABASE_ANON_KEY}"
+      ]
+    }
+  ]
+}

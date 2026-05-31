@@ -282,13 +282,11 @@ class _AivaAvatar extends StatelessWidget {
         ],
       ),
       child: Center(
-        child: Text(
-          'A',
-          style: GoogleFonts.inter(
-            fontSize: 12.sp,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
+        child: Image.asset(
+          'assets/images/aiva_logo.png',
+          width: 18.w,
+          height: 18.w,
+          fit: BoxFit.contain,
         ),
       ),
     );

@@ -2,10 +2,11 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:enbridge/theme/app_theme.dart';
 import 'package:enbridge/core/providers/aiva_provider.dart';
-import 'package:enbridge/widgets/aiva_ring_widget.dart';
+import 'package:enbridge/widgets/aiva_logo_avatar.dart';
 
 class AivaChatScreen extends ConsumerStatefulWidget {
   final String topic;
@@ -71,6 +72,19 @@ class _AivaChatScreenState extends ConsumerState<AivaChatScreen> {
     ref.listen(aivaChatProvider, (_, next) {
       if (!next.isTyping) _scrollToBottom();
     });
+
+    // Navigate when AIVA triggers a tab change (e.g. starting focus timer)
+    ref.listen(
+      aivaChatProvider.select((s) => s.navigateTo),
+      (_, route) {
+        if (route != null) {
+          ref.read(aivaChatProvider.notifier).clearNavigate();
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) context.go(route);
+          });
+        }
+      },
+    );
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
@@ -171,7 +185,7 @@ class _ChatHeader extends StatelessWidget {
                     icon: const Icon(Icons.arrow_back_ios_new_rounded,
                         color: AppColors.textSecondary, size: 18),
                   ),
-                  AIVARingWidget(size: 36.w, animate: true),
+                  AIVALogoAvatar(size: 36.w),
                   SizedBox(width: 10.w),
                   Expanded(
                     child: Column(
@@ -247,15 +261,19 @@ class _MessageBubble extends StatelessWidget {
             message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!message.isUser) ...[
-            _AivaAvatar(),
-            SizedBox(width: 8.w),
+          if (message.isSystem) ...[
+            _SystemMessage(text: message.text),
+          ] else ...[
+            if (!message.isUser) ...[
+              AIVALogoAvatar(size: 28.w),
+              SizedBox(width: 8.w),
+            ],
+            Flexible(
+              child: message.isUser
+                  ? _UserBubble(text: message.text)
+                  : _AivaBubble(text: message.text),
+            ),
           ],
-          Flexible(
-            child: message.isUser
-                ? _UserBubble(text: message.text)
-                : _AivaBubble(text: message.text),
-          ),
           if (message.isUser) SizedBox(width: 4.w),
         ],
       ),
@@ -263,30 +281,40 @@ class _MessageBubble extends StatelessWidget {
   }
 }
 
-class _AivaAvatar extends StatelessWidget {
+class _SystemMessage extends StatelessWidget {
+  final String text;
+  const _SystemMessage({required this.text});
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 28.w,
-      height: 28.w,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: const LinearGradient(
-          colors: [AppColors.aivaGradStart, AppColors.aivaGradEnd],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.aivaBlue.withValues(alpha: 0.3),
-            blurRadius: 8,
-          ),
-        ],
-      ),
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 6.h),
       child: Center(
-        child: Image.asset(
-          'assets/images/aiva_logo.png',
-          width: 18.w,
-          height: 18.w,
-          fit: BoxFit.contain,
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+          decoration: BoxDecoration(
+            color: AppColors.accentGreen.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(20.r),
+            border: Border.all(
+                color: AppColors.accentGreen.withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.check_circle_outline_rounded,
+                  size: 13.sp, color: AppColors.accentGreen),
+              SizedBox(width: 6.w),
+              Flexible(
+                child: Text(
+                  text,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    fontSize: 11.sp,
+                    color: AppColors.accentGreen,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -405,7 +433,7 @@ class _TypingIndicatorState extends State<_TypingIndicator>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          _AivaAvatar(),
+          AIVALogoAvatar(size: 28.w),
           SizedBox(width: 8.w),
           ClipRRect(
             borderRadius: BorderRadius.circular(18.r),
@@ -572,7 +600,7 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          AIVARingWidget(size: 80.w, animate: true),
+          AIVALogoAvatar(size: 80.w),
           SizedBox(height: 20.h),
           ShaderMask(
             shaderCallback: (bounds) => const LinearGradient(

@@ -28,15 +28,21 @@ class CalendarNotifier extends AsyncNotifier<List<EventModel>> {
   Future<void> addEvent(EventModel event) async {
     state = const AsyncLoading();
     try {
-      await supabase.from('calendar_events').insert(event.toMap());
+      final userId = supabase.auth.currentUser?.id;
+      if (userId == null) {
+        state = AsyncError('Not authenticated', StackTrace.current);
+        return;
+      }
+      final eventWithUser = event.copyWith(userId: userId);
+      await supabase.from('calendar_events').insert(eventWithUser.toMap());
 
       // Schedule reminder if needed
-      if (event.hasReminder && event.reminderAt != null) {
+      if (eventWithUser.hasReminder && eventWithUser.reminderAt != null) {
         await NotificationService.instance.scheduleEventReminder(
-          id: event.id.hashCode,
-          title: '🔔 ${event.title}',
-          body: event.description ?? 'Your event is coming up!',
-          scheduledAt: event.reminderAt!,
+          id: eventWithUser.id.hashCode,
+          title: '🔔 ${eventWithUser.title}',
+          body: eventWithUser.description ?? 'Your event is coming up!',
+          scheduledAt: eventWithUser.reminderAt!,
         );
       }
 

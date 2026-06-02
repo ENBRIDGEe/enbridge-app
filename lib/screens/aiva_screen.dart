@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:enbridge/theme/app_theme.dart';
 import 'package:enbridge/core/providers/aiva_provider.dart';
+import 'package:enbridge/widgets/aiva_logo_avatar.dart';
 import 'package:enbridge/widgets/aiva_ring_widget.dart';
 import 'package:enbridge/widgets/aiva_session_card.dart';
 
@@ -69,8 +70,8 @@ class AIVAScreen extends ConsumerWidget {
                             ],
                           ),
                         ),
-                        // Mini ring icon
-                        AIVARingWidget(size: 48.w, animate: true),
+                        // AIVA logo avatar
+                        AIVALogoAvatar(size: 48.w),
                       ],
                     ),
                   ),
@@ -163,8 +164,8 @@ class _HeroRingSection extends StatelessWidget {
     return Center(
       child: Column(
         children: [
-          // Large ring
-          AIVARingWidget(size: 160.w, animate: true),
+          // AIVA logo avatar (hero)
+          AIVALogoAvatar(size: 160.w),
 
           SizedBox(height: 24.h),
 

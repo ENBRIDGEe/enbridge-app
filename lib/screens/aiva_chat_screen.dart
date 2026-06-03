@@ -28,7 +28,9 @@ class _AivaChatScreenState extends ConsumerState<AivaChatScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final chat = ref.read(aivaChatProvider);
       if (chat.messages.isEmpty) {
-        ref.read(aivaChatProvider.notifier).sendMessage(
+        ref
+            .read(aivaChatProvider.notifier)
+            .sendMessage(
               'Hello! I just started a session on: "${widget.topic}". '
               'Please greet me as AIVA and help me get started.',
             );
@@ -74,17 +76,14 @@ class _AivaChatScreenState extends ConsumerState<AivaChatScreen> {
     });
 
     // Navigate when AIVA triggers a tab change (e.g. starting focus timer)
-    ref.listen(
-      aivaChatProvider.select((s) => s.navigateTo),
-      (_, route) {
-        if (route != null) {
-          ref.read(aivaChatProvider.notifier).clearNavigate();
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) context.go(route);
-          });
-        }
-      },
-    );
+    ref.listen(aivaChatProvider.select((s) => s.navigateTo), (_, route) {
+      if (route != null) {
+        ref.read(aivaChatProvider.notifier).clearNavigate();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) context.go(route);
+        });
+      }
+    });
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
@@ -122,7 +121,8 @@ class _AivaChatScreenState extends ConsumerState<AivaChatScreen> {
                     : ListView.builder(
                         controller: _scrollCtrl,
                         padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 8.h),
-                        itemCount: chatState.messages.length +
+                        itemCount:
+                            chatState.messages.length +
                             (chatState.isTyping ? 1 : 0),
                         itemBuilder: (context, index) {
                           if (index == chatState.messages.length) {
@@ -182,8 +182,11 @@ class _ChatHeader extends StatelessWidget {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                        color: AppColors.textSecondary, size: 18),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: AppColors.textSecondary,
+                      size: 18,
+                    ),
                   ),
                   AIVALogoAvatar(size: 36.w),
                   SizedBox(width: 10.w),
@@ -195,7 +198,7 @@ class _ChatHeader extends StatelessWidget {
                           shaderCallback: (bounds) => const LinearGradient(
                             colors: [
                               AppColors.aivaGradStart,
-                              AppColors.aivaGradEnd
+                              AppColors.aivaGradEnd,
                             ],
                           ).createShader(bounds),
                           child: Text(
@@ -209,8 +212,9 @@ class _ChatHeader extends StatelessWidget {
                         ),
                         Text(
                           topic,
-                          style: AppTextStyles.bodySmall
-                              .copyWith(fontSize: 11.sp),
+                          style: AppTextStyles.bodySmall.copyWith(
+                            fontSize: 11.sp,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -219,13 +223,16 @@ class _ChatHeader extends StatelessWidget {
                   ),
                   // Live indicator
                   Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 8.w,
+                      vertical: 4.h,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.aivaBlue.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20.r),
                       border: Border.all(
-                          color: AppColors.aivaBlueMid.withValues(alpha: 0.4)),
+                        color: AppColors.aivaBlueMid.withValues(alpha: 0.4),
+                      ),
                     ),
                     child: Text(
                       'LIVE',
@@ -257,8 +264,9 @@ class _MessageBubble extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(bottom: 12.h),
       child: Row(
-        mainAxisAlignment:
-            message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: message.isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (message.isSystem) ...[
@@ -296,13 +304,17 @@ class _SystemMessage extends StatelessWidget {
             color: AppColors.accentGreen.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20.r),
             border: Border.all(
-                color: AppColors.accentGreen.withValues(alpha: 0.3)),
+              color: AppColors.accentGreen.withValues(alpha: 0.3),
+            ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.check_circle_outline_rounded,
-                  size: 13.sp, color: AppColors.accentGreen),
+              Icon(
+                Icons.check_circle_outline_rounded,
+                size: 13.sp,
+                color: AppColors.accentGreen,
+              ),
               SizedBox(width: 6.w),
               Flexible(
                 child: Text(
@@ -440,8 +452,7 @@ class _TypingIndicatorState extends State<_TypingIndicator>
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
               child: Container(
-                padding:
-                    EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
                 decoration: BoxDecoration(
                   color: AppColors.aivaBlue.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(18.r),
@@ -451,14 +462,14 @@ class _TypingIndicatorState extends State<_TypingIndicator>
                 ),
                 child: AnimatedBuilder(
                   animation: _ctrl,
-                  builder: (_, __) => Row(
+                  builder: (_, _) => Row(
                     mainAxisSize: MainAxisSize.min,
                     children: List.generate(3, (i) {
                       final delay = i / 3;
                       final t = (_ctrl.value - delay).clamp(0.0, 1.0);
-                      final opacity = 0.3 +
-                          0.7 *
-                              (t < 0.5 ? t * 2 : (1 - t) * 2).clamp(0.0, 1.0);
+                      final opacity =
+                          0.3 +
+                          0.7 * (t < 0.5 ? t * 2 : (1 - t) * 2).clamp(0.0, 1.0);
                       return Padding(
                         padding: EdgeInsets.symmetric(horizontal: 3.w),
                         child: Opacity(
@@ -534,11 +545,17 @@ class _InputBar extends StatelessWidget {
                     textInputAction: TextInputAction.send,
                     onSubmitted: (_) => onSend(),
                     decoration: InputDecoration(
-                      hintText: isTyping ? 'AIVA is thinking…' : 'Ask AIVA anything…',
-                      hintStyle: AppTextStyles.inputHint.copyWith(fontSize: 14.sp),
+                      hintText: isTyping
+                          ? 'AIVA is thinking…'
+                          : 'Ask AIVA anything…',
+                      hintStyle: AppTextStyles.inputHint.copyWith(
+                        fontSize: 14.sp,
+                      ),
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(
-                          horizontal: 16.w, vertical: 12.h),
+                        horizontal: 16.w,
+                        vertical: 12.h,
+                      ),
                     ),
                   ),
                 ),
@@ -556,12 +573,10 @@ class _InputBar extends StatelessWidget {
                         : const LinearGradient(
                             colors: [
                               AppColors.aivaGradStart,
-                              AppColors.aivaGradEnd
+                              AppColors.aivaGradEnd,
                             ],
                           ),
-                    color: isTyping
-                        ? AppColors.bgElevated
-                        : null,
+                    color: isTyping ? AppColors.bgElevated : null,
                     shape: BoxShape.circle,
                     boxShadow: isTyping
                         ? null
@@ -576,9 +591,7 @@ class _InputBar extends StatelessWidget {
                     isTyping
                         ? Icons.hourglass_empty_rounded
                         : Icons.arrow_upward_rounded,
-                    color: isTyping
-                        ? AppColors.textTertiary
-                        : Colors.white,
+                    color: isTyping ? AppColors.textTertiary : Colors.white,
                     size: 20.sp,
                   ),
                 ),
@@ -646,18 +659,28 @@ class _ErrorBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.error_outline_rounded,
-              color: AppColors.accentRed, size: 16.sp),
+          Icon(
+            Icons.error_outline_rounded,
+            color: AppColors.accentRed,
+            size: 16.sp,
+          ),
           SizedBox(width: 8.w),
           Expanded(
-            child: Text(message,
-                style: AppTextStyles.bodySmall
-                    .copyWith(color: AppColors.accentRed, fontSize: 12.sp)),
+            child: Text(
+              message,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.accentRed,
+                fontSize: 12.sp,
+              ),
+            ),
           ),
           GestureDetector(
             onTap: onDismiss,
-            child: Icon(Icons.close_rounded,
-                color: AppColors.accentRed, size: 16.sp),
+            child: Icon(
+              Icons.close_rounded,
+              color: AppColors.accentRed,
+              size: 16.sp,
+            ),
           ),
         ],
       ),

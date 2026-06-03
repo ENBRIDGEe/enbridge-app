@@ -7,7 +7,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:enbridge/theme/app_theme.dart';
 import 'package:enbridge/core/providers/aiva_provider.dart';
 import 'package:enbridge/widgets/aiva_logo_avatar.dart';
-import 'package:enbridge/widgets/aiva_ring_widget.dart';
 import 'package:enbridge/widgets/aiva_session_card.dart';
 
 class AIVAScreen extends ConsumerWidget {
@@ -17,7 +16,11 @@ class AIVAScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sessions = ref.watch(aivaSessionProvider);
     final activeSession = ref.watch(activeAIVASessionProvider);
-    final pastSessions = sessions.where((s) => !s.isActive).toList().reversed.toList();
+    final pastSessions = sessions
+        .where((s) => !s.isActive)
+        .toList()
+        .reversed
+        .toList();
 
     return Scaffold(
       backgroundColor: AppColors.bgPrimary,
@@ -65,7 +68,9 @@ class AIVAScreen extends ConsumerWidget {
                               SizedBox(height: 4.h),
                               Text(
                                 'Your AI Companion',
-                                style: AppTextStyles.displaySmall.copyWith(fontSize: 22.sp),
+                                style: AppTextStyles.displaySmall.copyWith(
+                                  fontSize: 22.sp,
+                                ),
                               ),
                             ],
                           ),
@@ -81,7 +86,10 @@ class AIVAScreen extends ConsumerWidget {
 
                 // ── Hero ring + Live / Start button ────────────────────────
                 SliverToBoxAdapter(
-                  child: _HeroRingSection(activeSession: activeSession, ref: ref),
+                  child: _HeroRingSection(
+                    activeSession: activeSession,
+                    ref: ref,
+                  ),
                 ),
 
                 SliverToBoxAdapter(child: SizedBox(height: 32.h)),
@@ -96,10 +104,15 @@ class AIVAScreen extends ConsumerWidget {
                         children: [
                           Text(
                             'CURRENT SESSION',
-                            style: AppTextStyles.labelEyebrow.copyWith(fontSize: 10.sp),
+                            style: AppTextStyles.labelEyebrow.copyWith(
+                              fontSize: 10.sp,
+                            ),
                           ),
                           SizedBox(height: 12.h),
-                          AIVASessionCard(session: activeSession, isActive: true),
+                          AIVASessionCard(
+                            session: activeSession,
+                            isActive: true,
+                          ),
                         ],
                       ),
                     ),
@@ -115,7 +128,9 @@ class AIVAScreen extends ConsumerWidget {
                       padding: EdgeInsets.symmetric(horizontal: 24.w),
                       child: Text(
                         'SESSION HISTORY',
-                        style: AppTextStyles.labelEyebrow.copyWith(fontSize: 10.sp),
+                        style: AppTextStyles.labelEyebrow.copyWith(
+                          fontSize: 10.sp,
+                        ),
                       ),
                     ),
                   ),
@@ -123,22 +138,19 @@ class AIVAScreen extends ConsumerWidget {
                 SliverToBoxAdapter(child: SizedBox(height: 12.h)),
 
                 SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final session = pastSessions[index];
-                      return Padding(
-                        padding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 12.h),
-                        child: GestureDetector(
-                          onTap: () => context.push(
-                            '/aiva/chat',
-                            extra: {'topic': session.topic},
-                          ),
-                          child: AIVASessionCard(session: session),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final session = pastSessions[index];
+                    return Padding(
+                      padding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 12.h),
+                      child: GestureDetector(
+                        onTap: () => context.push(
+                          '/aiva/chat',
+                          extra: {'topic': session.topic},
                         ),
-                      );
-                    },
-                    childCount: pastSessions.length,
-                  ),
+                        child: AIVASessionCard(session: session),
+                      ),
+                    );
+                  }, childCount: pastSessions.length),
                 ),
 
                 SliverToBoxAdapter(child: SizedBox(height: 120.h)),
@@ -178,7 +190,10 @@ class _HeroRingSection extends StatelessWidget {
                     children: [
                       ShaderMask(
                         shaderCallback: (bounds) => const LinearGradient(
-                          colors: [AppColors.aivaGradStart, AppColors.aivaGradEnd],
+                          colors: [
+                            AppColors.aivaGradStart,
+                            AppColors.aivaGradEnd,
+                          ],
                         ).createShader(bounds),
                         child: Text(
                           'Session Active',
@@ -212,7 +227,9 @@ class _HeroRingSection extends StatelessWidget {
                       SizedBox(height: 6.h),
                       Text(
                         'Start a session to get personalised AI guidance',
-                        style: AppTextStyles.bodySmall.copyWith(fontSize: 12.sp),
+                        style: AppTextStyles.bodySmall.copyWith(
+                          fontSize: 12.sp,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -228,7 +245,10 @@ class _HeroRingSection extends StatelessWidget {
               if (activeSession == null) {
                 _showNewSessionSheet(context, ref);
               } else {
-                context.push('/aiva/chat', extra: {'topic': activeSession!.topic});
+                context.push(
+                  '/aiva/chat',
+                  extra: {'topic': activeSession!.topic},
+                );
               }
             },
           ),
@@ -317,7 +337,9 @@ class _NewSessionSheet extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
         child: Container(
           padding: EdgeInsets.fromLTRB(
-            24.w, 20.h, 24.w,
+            24.w,
+            20.h,
+            24.w,
             MediaQuery.of(context).viewInsets.bottom + 32.h,
           ),
           decoration: BoxDecoration(
@@ -342,7 +364,10 @@ class _NewSessionSheet extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 20.h),
-              Text('New AIVA Session', style: AppTextStyles.displaySmall.copyWith(fontSize: 20.sp)),
+              Text(
+                'New AIVA Session',
+                style: AppTextStyles.displaySmall.copyWith(fontSize: 20.sp),
+              ),
               SizedBox(height: 6.h),
               Text(
                 'What would you like to talk about?',

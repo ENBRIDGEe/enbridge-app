@@ -205,6 +205,8 @@ class AivaChatNotifier extends Notifier<AivaChatState> {
             await _doDeleteTask(a, confirmations);
           case 'add_calendar_event':
             await _doAddEvent(a, confirmations);
+          case 'delete_calendar_event':
+            await _doDeleteEvent(a, confirmations);
           case 'add_habit':
             await _doAddHabit(a, confirmations);
           case 'start_focus_timer':
@@ -264,6 +266,22 @@ class AivaChatNotifier extends Notifier<AivaChatState> {
     out.add('Task deleted: "$title"');
   }
 
+  Future<void> _doDeleteEvent(
+      Map<String, dynamic> a, List<String> out) async {
+    final title = a['title'] as String?;
+    if (title == null) return;
+    final userId = supabase.auth.currentUser?.id;
+    if (userId == null) return;
+    await supabase
+        .from('calendar_events')
+        .delete()
+        .eq('user_id', userId)
+        .ilike('title', '%$title%');
+    
+    // Force fresh fetch so CalendarScreen shows the event is removed
+    ref.invalidate(calendarProvider);
+    out.add('Event deleted: "$title"');
+  }
 
   Future<void> _doAddEvent(
       Map<String, dynamic> a, List<String> out) async {

@@ -32,7 +32,7 @@ class AIVALogoAvatar extends StatelessWidget {
           width: size,
           height: size,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Center(
+          errorBuilder: (_, _, _) => Center(
             child: Image.asset(
               'assets/images/aiva_logo.png',
               width: size * 0.65,

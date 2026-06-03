@@ -42,6 +42,8 @@ class NvidiaService {
       'When the user asks you to add, create, complete, delete, or control '
       'something in the app, ALWAYS call the appropriate tool — do not just '
       'describe it in text. '
+      'IMPORTANT: ONLY call a tool if the user explicitly requests an action. '
+      'If the user just says hi, asks a question, or chats, reply normally and DO NOT call any tools. '
       'After calling a tool, confirm what you did briefly and naturally. '
       'Do NOT mention focus sessions, timers, or upcoming events unless the '
       'user specifically asks or the live context shows the timer is actively running. '
@@ -138,6 +140,23 @@ class NvidiaService {
             'description': {'type': 'string'},
           },
           'required': ['title', 'date'],
+        },
+      },
+    },
+    {
+      'type': 'function',
+      'function': {
+        'name': 'delete_calendar_event',
+        'description': 'Delete an event from the Calendar screen by partial title match',
+        'parameters': {
+          'type': 'object',
+          'properties': {
+            'title': {
+              'type': 'string',
+              'description': 'Full or partial event title',
+            },
+          },
+          'required': ['title'],
         },
       },
     },

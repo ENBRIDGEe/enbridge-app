@@ -48,8 +48,11 @@ class CalendarNotifier extends AsyncNotifier<List<EventModel>> {
 
       final updated = await _fetchEvents();
       state = AsyncData(updated);
-    } catch (e) {
-      state = AsyncError(e, StackTrace.current);
+    } catch (e, stack) {
+      print('=== ADD EVENT ERROR ===');
+      print(e);
+      print(stack);
+      state = AsyncError(e, stack);
     }
   }
 

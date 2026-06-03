@@ -140,7 +140,7 @@ class _LiveBadgeState extends State<_LiveBadge>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _ctrl,
-      builder: (_, __) => Container(
+      builder: (_, _) => Container(
         padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
         decoration: BoxDecoration(
           color: AppColors.aivaBlue.withValues(alpha: 0.15 + _ctrl.value * 0.1),

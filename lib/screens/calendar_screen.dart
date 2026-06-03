@@ -199,7 +199,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 loading: () => const Center(
                   child: CircularProgressIndicator(color: AppColors.aivaBlue),
                 ),
-                error: (_, __) => Center(
+                error: (_, _) => Center(
                   child: Text(
                     'Could not load events',
                     style: AppTextStyles.bodySmall,
@@ -513,7 +513,7 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                       Switch(
                         value: _hasReminder,
                         onChanged: (v) => setState(() => _hasReminder = v),
-                        activeColor: AppColors.accentGreen,
+                        activeThumbColor: AppColors.accentGreen,
                         trackColor: WidgetStateProperty.all(
                           AppColors.accentGreen.withValues(alpha: 0.2),
                         ),
@@ -533,8 +533,9 @@ class _AddEventSheetState extends State<_AddEventSheet> {
                         initialTime: _reminderTime,
                         builder: (ctx, child) => _darkPicker(ctx, child),
                       );
-                      if (picked != null)
+                      if (picked != null) {
                         setState(() => _reminderTime = picked);
+                      }
                     },
                   ),
                 ],

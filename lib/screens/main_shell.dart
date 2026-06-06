@@ -92,11 +92,13 @@ class _BottomNav extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          isSelected ? _items[i].$2 : _items[i].$1,
-                          size: 20,
-                          color: isSelected ? activeColor : AppColors.textTertiary,
-                        ),
+                        i == 2
+                            ? _AivaNavIcon(isSelected: isSelected)
+                            : Icon(
+                                isSelected ? _items[i].$2 : _items[i].$1,
+                                size: 20,
+                                color: isSelected ? activeColor : AppColors.textTertiary,
+                              ),
                         if (isSelected) ...[
                           const SizedBox(height: 4),
                           Container(
@@ -115,6 +117,76 @@ class _BottomNav extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _AivaNavIcon extends StatelessWidget {
+  final bool isSelected;
+
+  const _AivaNavIcon({required this.isSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isSelected ? AppColors.aivaBlueMid : AppColors.textTertiary;
+
+    Widget sparkle(double size) {
+      return Icon(
+        Icons.auto_awesome_rounded,
+        size: size,
+        color: color,
+      );
+    }
+
+    return SizedBox(
+      width: 20,
+      height: 20,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          if (isSelected)
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.aivaBlue.withValues(alpha: 0.22),
+                      blurRadius: 10,
+                      spreadRadius: -1,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          Positioned(
+            left: 1,
+            top: 0,
+            child: sparkle(8),
+          ),
+          Positioned(
+            right: 1,
+            top: 2,
+            child: sparkle(5),
+          ),
+          Positioned(
+            left: 5,
+            top: 8,
+            child: sparkle(6.5),
+          ),
+          Positioned(
+            left: 10,
+            bottom: 1,
+            child: Container(
+              width: 3,
+              height: 3,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -224,6 +224,7 @@ class _TasksScreenState extends State<TasksScreen> {
         final isDone = t['completed'] == true;
         final priority = t['priority'] as String?;
         final category = t['category'] as String?;
+        final description = (t['description'] as String?)?.trim();
         return Dismissible(
           key: Key(id.toString()),
           background: Container(
@@ -285,6 +286,20 @@ class _TasksScreenState extends State<TasksScreen> {
                           decoration: isDone ? TextDecoration.lineThrough : null,
                         ),
                       ),
+                      if (description != null && description.isNotEmpty) ...[
+                        SizedBox(height: 6.h),
+                        Text(
+                          description,
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: isDone
+                                ? AppColors.textTertiary
+                                : AppColors.textSecondary,
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
                       if (category != null || priority != null) ...[
                         SizedBox(height: 6.h),
                         Row(

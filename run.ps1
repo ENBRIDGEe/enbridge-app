@@ -1,0 +1,4 @@
+flutter run -d chrome `
+  --dart-define=SUPABASE_URL=https://utskvawuxkubeehinexf.supabase.co `
+  --dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0c2t2YXd1eGt1YmVlaGluZXhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNzgzNTUsImV4cCI6MjA5NDg1NDM1NX0.dogKQJtfJc21hlCsb8HZPKliXUL6beUVHl2bLQ1Tb5s `
+  --dart-define=NVIDIA_API_KEY=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

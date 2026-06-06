@@ -8,7 +8,6 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:enbridge/core/supabase/supabase_client.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:enbridge/widgets/aiva_ring_widget.dart';
 
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback onComplete;
@@ -25,13 +24,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   // Fix 1: track selected pain points
   final Set<String> _selectedPains = {};
 
-  // Fix 2: editable schedule times
-  final Map<String, TimeOfDay> _schedule = {
-    'Wake up': const TimeOfDay(hour: 7, minute: 0),
-    'Deep focus': const TimeOfDay(hour: 9, minute: 0),
-    'Gym': const TimeOfDay(hour: 18, minute: 0),
-    'Sleep': const TimeOfDay(hour: 23, minute: 0),
-  };
+  // Fix 2: editable schedule times and names
+  final List<ScheduleItem> _scheduleItems = [
+    ScheduleItem(name: 'Wake up', time: const TimeOfDay(hour: 7, minute: 0)),
+    ScheduleItem(name: 'Deep focus', time: const TimeOfDay(hour: 9, minute: 0)),
+    ScheduleItem(name: 'Gym', time: const TimeOfDay(hour: 18, minute: 0)),
+    ScheduleItem(name: 'Sleep', time: const TimeOfDay(hour: 23, minute: 0)),
+  ];
+
+  @override
+  void dispose() {
+    for (var item in _scheduleItems) {
+      item.nameController.dispose();
+    }
+    _controller.dispose();
+    super.dispose();
+  }
 
   String _formatTime(TimeOfDay t) {
     final h = t.hourOfPeriod == 0 ? 12 : t.hourOfPeriod;
@@ -55,12 +63,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           'user_id': user.id,
           'pain_points': _selectedPains.toList(),
           'user_type': _selectedCategory ?? 'Everyday You',
-          'schedule': {
-            'wake_up': _formatTime(_schedule['Wake up']!),
-            'deep_focus': _formatTime(_schedule['Deep focus']!),
-            'gym': _formatTime(_schedule['Gym']!),
-            'sleep': _formatTime(_schedule['Sleep']!),
-          },
+          'schedule': _scheduleItems.map((e) => {
+            'name': e.nameController.text,
+            'time': _formatTime(e.time),
+          }).toList(),
         });
       } else {
         // Cache for later sync after auth
@@ -73,21 +79,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           'cached_user_type',
           _selectedCategory ?? 'Everyday You',
         );
-        await prefs.setString(
-          'cached_schedule_wake_up',
-          _formatTime(_schedule['Wake up']!),
+        await prefs.setStringList(
+          'cached_schedule_names',
+          _scheduleItems.map((e) => e.nameController.text).toList(),
         );
-        await prefs.setString(
-          'cached_schedule_deep_focus',
-          _formatTime(_schedule['Deep focus']!),
-        );
-        await prefs.setString(
-          'cached_schedule_gym',
-          _formatTime(_schedule['Gym']!),
-        );
-        await prefs.setString(
-          'cached_schedule_sleep',
-          _formatTime(_schedule['Sleep']!),
+        await prefs.setStringList(
+          'cached_schedule_times',
+          _scheduleItems.map((e) => _formatTime(e.time)).toList(),
         );
       }
     } catch (_) {}
@@ -180,13 +178,31 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             children: [
               SizedBox(height: 20.h),
 
-              // AIVA ring animation
-              AIVARingWidget(size: 180.w, animate: true),
-
-              SizedBox(height: 20.h),
-
-              // ── Sound wave bars (standalone, below ring) ───────────────
-              const _SoundWaveBars(),
+              // Enbridge Logo
+              Container(
+                width: 140.w,
+                height: 140.w,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(32.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.aivaBlue.withValues(alpha: 0.35),
+                      blurRadius: 32,
+                      spreadRadius: 2,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(32.r),
+                  child: Image.asset(
+                    'assets/icon/Enbridge Logo .png',
+                    width: 140.w,
+                    height: 140.w,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
 
               SizedBox(height: 28.h),
 
@@ -207,28 +223,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                     child: Column(
                       children: [
-                        // Powered badge
+                        // Powered badge replaced by AIVA logo
                         Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 14.w,
-                            vertical: 6.h,
-                          ),
+                          width: 56.w,
+                          height: 56.w,
                           decoration: BoxDecoration(
+                            shape: BoxShape.circle,
                             color: AppColors.aivaBlue.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(20.r),
                             border: Border.all(
-                              color: AppColors.aivaBlueMid.withValues(
-                                alpha: 0.35,
-                              ),
+                              color: AppColors.aivaBlueMid.withValues(alpha: 0.35),
                             ),
                           ),
-                          child: Text(
-                            '✦  Powered by AIVA AI',
-                            style: AppTextStyles.labelEyebrow.copyWith(
-                              fontSize: 10.sp,
-                              color: AppColors.aivaBlueMid,
-                              letterSpacing: 1.5,
-                            ),
+                          clipBehavior: Clip.hardEdge,
+                          child: Image.asset(
+                            'assets/images/Full AIVA logo.png',
+                            fit: BoxFit.cover,
                           ),
                         ),
 
@@ -487,9 +496,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         children: [
           Text('Ideal schedule', style: AppTextStyles.displayHeading),
           SizedBox(height: 8.h),
-          Text('Tap a time to edit it', style: AppTextStyles.bodySmall),
+          Text('Tap a time or name to edit', style: AppTextStyles.bodySmall),
           SizedBox(height: 32.h),
-          ..._schedule.entries.map((e) => _timeRow(e.key, e.value)),
+          ..._scheduleItems.map((e) => _timeRow(e)),
           SizedBox(height: 48.h),
           _nextBtn(),
         ],
@@ -497,18 +506,33 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _timeRow(String label, TimeOfDay time) {
+  Widget _timeRow(ScheduleItem item) {
     return Padding(
       padding: EdgeInsets.only(bottom: 20.h),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: AppTextStyles.bodyMedium),
+          Expanded(
+            child: TextField(
+              controller: item.nameController,
+              style: AppTextStyles.bodyMedium,
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+                hintText: 'Enter task name',
+                hintStyle: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textPrimary.withValues(alpha: 0.5),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: 16.w),
           GestureDetector(
             onTap: () async {
               final picked = await showTimePicker(
                 context: context,
-                initialTime: time,
+                initialTime: item.time,
                 builder: (ctx, child) => Theme(
                   data: Theme.of(ctx).copyWith(
                     colorScheme: const ColorScheme.dark(
@@ -522,7 +546,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
               );
               if (picked != null) {
-                setState(() => _schedule[label] = picked);
+                setState(() => item.time = picked);
               }
             },
             child: Container(
@@ -538,7 +562,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    _formatTime(time),
+                    _formatTime(item.time),
                     style: GoogleFonts.inter(
                       fontSize: 15.sp,
                       fontWeight: FontWeight.w600,
@@ -629,6 +653,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: const Text('Continue'),
     );
   }
+}
+
+class ScheduleItem {
+  final TextEditingController nameController;
+  TimeOfDay time;
+
+  ScheduleItem({required String name, required this.time})
+      : nameController = TextEditingController(text: name);
 }
 
 // ── Particle background ───────────────────────────────────────────────────────

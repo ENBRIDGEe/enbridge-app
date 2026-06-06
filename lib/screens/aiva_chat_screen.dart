@@ -4,13 +4,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:enbridge/core/models/aiva_chat_message.dart';
 import 'package:enbridge/theme/app_theme.dart';
 import 'package:enbridge/core/providers/aiva_provider.dart';
 import 'package:enbridge/widgets/aiva_logo_avatar.dart';
 
 class AivaChatScreen extends ConsumerStatefulWidget {
+  final String sessionId;
   final String topic;
-  const AivaChatScreen({super.key, required this.topic});
+  const AivaChatScreen({
+    super.key,
+    required this.sessionId,
+    required this.topic,
+  });
 
   @override
   ConsumerState<AivaChatScreen> createState() => _AivaChatScreenState();
@@ -24,18 +30,29 @@ class _AivaChatScreenState extends ConsumerState<AivaChatScreen> {
   @override
   void initState() {
     super.initState();
-    // Greet the user when the session opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final chat = ref.read(aivaChatProvider);
-      if (chat.messages.isEmpty) {
-        ref
-            .read(aivaChatProvider.notifier)
-            .sendMessage(
-              'Hello! I just started a session on: "${widget.topic}". '
-              'Please greet me as AIVA and help me get started.',
+      if (mounted) {
+        ref.read(aivaChatProvider.notifier).openSession(
+              widget.sessionId,
+              topic: widget.topic,
             );
       }
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant AivaChatScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.sessionId != widget.sessionId) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ref.read(aivaChatProvider.notifier).openSession(
+                widget.sessionId,
+                topic: widget.topic,
+              );
+        }
+      });
+    }
   }
 
   @override
@@ -69,6 +86,17 @@ class _AivaChatScreenState extends ConsumerState<AivaChatScreen> {
   @override
   Widget build(BuildContext context) {
     final chatState = ref.watch(aivaChatProvider);
+    final sessions = ref.watch(aivaSessionProvider);
+    AIVASession? matchedSession;
+    for (final session in sessions) {
+      if (session.id == widget.sessionId) {
+        matchedSession = session;
+        break;
+      }
+    }
+    final displayTopic = matchedSession?.topic ?? widget.topic;
+    final isLoadingSession = chatState.isLoadingSession ||
+        chatState.sessionId != widget.sessionId;
 
     // Auto-scroll when new messages arrive
     ref.listen(aivaChatProvider, (_, next) {
@@ -112,11 +140,17 @@ class _AivaChatScreenState extends ConsumerState<AivaChatScreen> {
           Column(
             children: [
               // ── Header ────────────────────────────────────────────────────
-              _ChatHeader(topic: widget.topic),
+              _ChatHeader(topic: displayTopic),
 
               // ── Messages ──────────────────────────────────────────────────
               Expanded(
-                child: chatState.messages.isEmpty && !chatState.isTyping
+                child: isLoadingSession
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.aivaBlueMid,
+                        ),
+                      )
+                    : chatState.messages.isEmpty && !chatState.isTyping
                     ? _EmptyState()
                     : ListView.builder(
                         controller: _scrollCtrl,
@@ -531,30 +565,48 @@ class _InputBar extends StatelessWidget {
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: AppColors.bgCard,
+                    color: AppColors.bgElevated,
                     borderRadius: BorderRadius.circular(24.r),
-                    border: Border.all(color: AppColors.borderMid),
+                    border: Border.all(
+                      color: isTyping
+                          ? AppColors.borderStrong
+                          : AppColors.aivaBlue.withValues(alpha: 0.22),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.18),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  child: TextField(
-                    controller: controller,
-                    focusNode: focusNode,
-                    enabled: !isTyping,
-                    style: AppTextStyles.inputText.copyWith(fontSize: 14.sp),
-                    maxLines: 4,
-                    minLines: 1,
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => onSend(),
-                    decoration: InputDecoration(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: 48.h),
+                    child: TextField(
+                      controller: controller,
+                      focusNode: focusNode,
+                      enabled: !isTyping,
+                      cursorColor: AppColors.aivaBlueMid,
+                      textAlignVertical: TextAlignVertical.center,
+                      style: AppTextStyles.inputText.copyWith(fontSize: 14.sp),
+                      maxLines: 4,
+                      minLines: 1,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => onSend(),
+                      decoration: InputDecoration(
                       hintText: isTyping
                           ? 'AIVA is thinking…'
                           : 'Ask AIVA anything…',
                       hintStyle: AppTextStyles.inputHint.copyWith(
                         fontSize: 14.sp,
+                        color: AppColors.textSecondary.withValues(alpha: 0.9),
                       ),
                       border: InputBorder.none,
+                      isDense: true,
                       contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16.w,
-                        vertical: 12.h,
+                        horizontal: 18.w,
+                        vertical: 14.h,
+                      ),
                       ),
                     ),
                   ),

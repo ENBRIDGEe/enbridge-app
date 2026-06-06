@@ -73,11 +73,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ResetPasswordScreen(),
       ),
       GoRoute(
-        path: '/aiva/chat',
+        path: '/aiva/chat/:sessionId',
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
           final topic = extra?['topic'] as String? ?? 'General Session';
-          return AivaChatScreen(topic: topic);
+          final sessionId = state.pathParameters['sessionId'] ?? '';
+          return AivaChatScreen(
+            sessionId: sessionId,
+            topic: topic,
+          );
         },
       ),
       ShellRoute(

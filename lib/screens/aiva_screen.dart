@@ -144,7 +144,7 @@ class AIVAScreen extends ConsumerWidget {
                       padding: EdgeInsets.fromLTRB(24.w, 0, 24.w, 12.h),
                       child: GestureDetector(
                         onTap: () => context.push(
-                          '/aiva/chat',
+                          '/aiva/chat/${session.id}',
                           extra: {'topic': session.topic},
                         ),
                         child: AIVASessionCard(session: session),
@@ -246,7 +246,7 @@ class _HeroRingSection extends StatelessWidget {
                 _showNewSessionSheet(context, ref);
               } else {
                 context.push(
-                  '/aiva/chat',
+                  '/aiva/chat/${activeSession!.id}',
                   extra: {'topic': activeSession!.topic},
                 );
               }
@@ -265,11 +265,16 @@ class _HeroRingSection extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (_) => _NewSessionSheet(
         controller: topicCtrl,
-        onStart: (topic) {
-          ref.read(aivaSessionProvider.notifier).startNewSession(topic);
-          ref.read(aivaChatProvider.notifier).reset();
+        onStart: (topic) async {
           Navigator.pop(context);
-          context.push('/aiva/chat', extra: {'topic': topic});
+          final session =
+              await ref.read(aivaSessionProvider.notifier).startNewSession(topic);
+          if (context.mounted) {
+            context.push(
+              '/aiva/chat/${session.id}',
+              extra: {'topic': session.topic},
+            );
+          }
         },
       ),
     );
@@ -325,7 +330,7 @@ class _AIVACTAButton extends StatelessWidget {
 
 class _NewSessionSheet extends StatelessWidget {
   final TextEditingController controller;
-  final void Function(String) onStart;
+  final Future<void> Function(String) onStart;
 
   const _NewSessionSheet({required this.controller, required this.onStart});
 
@@ -394,9 +399,9 @@ class _NewSessionSheet extends StatelessWidget {
                     borderRadius: BorderRadius.circular(50.r),
                   ),
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       final topic = controller.text.trim();
-                      onStart(topic.isEmpty ? 'General Session' : topic);
+                      await onStart(topic.isEmpty ? 'General Session' : topic);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,

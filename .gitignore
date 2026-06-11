@@ -49,3 +49,8 @@ app.*.map.json
 .env.json
 .env.local
 .env.*.local
+
+# Android signing — NEVER commit these
+android/key.properties
+*.jks
+*.keystore

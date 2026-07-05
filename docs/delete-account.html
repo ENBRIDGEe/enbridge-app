@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enbridge — Delete Account</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0A0A0A;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .container {
+      max-width: 520px;
+      width: 100%;
+      background: #111;
+      border-radius: 20px;
+      border: 1px solid #222;
+      padding: 40px 32px;
+    }
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      color: #4ADE80;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .subtitle {
+      color: #888;
+      font-size: 14px;
+      text-align: center;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+    .section { margin-bottom: 24px; }
+    .section h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #4ADE80;
+      margin-bottom: 8px;
+    }
+    .section p, .section li {
+      color: #999;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .section ul { padding-left: 20px; }
+    .section li { margin-bottom: 4px; }
+    .form-group { margin-bottom: 16px; }
+    label {
+      display: block;
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 6px;
+    }
+    input, textarea {
+      width: 100%;
+      background: #1A1A1A;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 14px 16px;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, textarea:focus { border-color: #4ADE80; }
+    textarea { resize: vertical; min-height: 80px; }
+    .btn {
+      width: 100%;
+      padding: 16px;
+      background: #4ADE80;
+      color: #000;
+      border: none;
+      border-radius: 50px;
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      margin-top: 8px;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .success {
+      display: none;
+      text-align: center;
+      padding: 24px 0;
+    }
+    .success .check { font-size: 48px; margin-bottom: 16px; }
+    .success h2 { font-size: 20px; margin-bottom: 8px; }
+    .success p { color: #888; font-size: 14px; line-height: 1.6; }
+    .divider { border: none; border-top: 1px solid #222; margin: 24px 0; }
+    .footer {
+      text-align: center;
+      color: #555;
+      font-size: 12px;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">Enbridge</div>
+    <h1>Delete Your Account</h1>
+    <p class="subtitle">We're sorry to see you go. Submit a request below and we'll permanently delete your account and all associated data.</p>
+
+    <div id="form-section">
+      <div class="section">
+        <h2>What gets deleted</h2>
+        <ul>
+          <li>Your account and login credentials</li>
+          <li>Profile information (name, email, photo)</li>
+          <li>All tasks, habits, and goals</li>
+          <li>Focus session history</li>
+          <li>Habit logs and streaks</li>
+          <li>All productivity analytics</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h2>How it works</h2>
+        <p>Once we receive your request, your account and all associated data will be permanently deleted within <strong style="color:#fff">30 days</strong>. This action is irreversible.</p>
+      </div>
+
+      <hr class="divider">
+
+      <form id="delete-form">
+        <div class="form-group">
+          <label for="email">Email address associated with your account *</label>
+          <input type="email" id="email" name="email" required placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label for="reason">Reason for deletion (optional)</label>
+          <textarea id="reason" name="reason" placeholder="Let us know why you're leaving..."></textarea>
+        </div>
+        <button type="submit" class="btn" id="submit-btn">Request Account Deletion</button>
+      </form>
+    </div>
+
+    <div class="success" id="success-section">
+      <div class="check">✅</div>
+      <h2>Request Submitted</h2>
+      <p>We've received your account deletion request. Your account and all associated data will be permanently deleted within 30 days. You'll receive a confirmation email shortly.</p>
+    </div>
+
+    <div class="footer">
+      <p>Enbridge &copy; 2026 &middot; <a href="mailto:enbridge784@gmail.com" style="color:#4ADE80;text-decoration:none;">enbridge784@gmail.com</a></p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('delete-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var email = document.getElementById('email').value;
+      var reason = document.getElementById('reason').value;
+      var btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+      btn.textContent = 'Submitting...';
+      var subject = encodeURIComponent('Account Deletion Request - Enbridge');
+      var body = encodeURIComponent(
+        'Account Deletion Request\n\nEmail: ' + email + '\nReason: ' + (reason || 'Not specified') + '\n\nPlease delete my Enbridge account and all associated data.'
+      );
+      window.location.href = 'mailto:enbridge784@gmail.com?subject=' + subject + '&body=' + body;
+      setTimeout(function() {
+        document.getElementById('form-section').style.display = 'none';
+        document.getElementById('success-section').style.display = 'block';
+      }, 1000);
+    });
+  </script>
+</body>
+</html>

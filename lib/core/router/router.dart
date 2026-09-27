@@ -21,9 +21,9 @@ final routerProvider = Provider<GoRouter>((ref) {
   final authStatus = authStatusAsync.value ?? AuthStatus.loading;
 
   return GoRouter(
-    initialLocation: '/splash',
+    initialLocation: '/dashboard',
     redirect: (context, state) {
-      final isAuth = authStatus == AuthStatus.authenticated;
+      final isAuth = true; // Bypass authentication
       final isLoading = authStatus == AuthStatus.loading;
       final isRecovery = authStatus == AuthStatus.passwordRecovery;
       final loc = state.matchedLocation;

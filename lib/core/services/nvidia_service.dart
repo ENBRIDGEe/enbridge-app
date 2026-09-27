@@ -555,7 +555,7 @@ class NvidiaService {
       return null;
     }
 
-    final mapped = Map<String, dynamic>.from(raw as Map);
+    final mapped = Map<String, dynamic>.from(raw);
     final function = mapped['function'];
     final name = mapped['name'] as String? ??
         (function is Map ? function['name'] as String? : null);

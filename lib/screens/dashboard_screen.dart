@@ -58,7 +58,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   Future<void> _fetchData() async {
     try {
       final user = supabase.auth.currentUser;
-      if (user == null) return;
+      if (user == null) {
+        if (mounted) setState(() => _isLoading = false);
+        return;
+      }
       final userId = user.id;
       final todayStr = DateTime.now().toIso8601String().split('T').first;
 
